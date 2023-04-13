@@ -5,8 +5,8 @@ using UnityEngine;
 public class BoardManager : MonoBehaviour
 {
     //Horizontal/Vertical distance between the centers of two ORTHogonal or DIAGonal spaces
-    public static readonly float ORTH_DIST = .68f;
-    public static readonly float DIAG_DIST = .68f / Mathf.Sqrt(2f);
+    public static readonly float ORTH_DIST = 1.36f;
+    public static readonly float DIAG_DIST = 1.36f / Mathf.Sqrt(2f);
     
     //A 2D array containing representations of all 8 board states
     public static readonly BoardSpace[,] BOARDS =
@@ -59,7 +59,7 @@ public class BoardManager : MonoBehaviour
                        new BoardSpace(4, new int[] {3, 6}, new int[] {3, 5}, DIAG_DIST, -DIAG_DIST),
                        new BoardSpace(5, new int[] {3, 6}, new int[] {1, 7}, -DIAG_DIST, -DIAG_DIST),
                        new BoardSpace(6, new int[] {4, 5}, new int[] {1, 3}, 0, -2 * DIAG_DIST) },
-                     { new BoardSpace(0, new int[] {1, 2}, new int[] {0, 6}, ORTH_DIST, ORTH_DIST),
+                     { new BoardSpace(0, new int[] {1, 2}, new int[] {0, 6}, -ORTH_DIST, ORTH_DIST),
                        new BoardSpace(1, new int[] {0, 3}, new int[] {4, 6}, 0, ORTH_DIST),
                        new BoardSpace(2, new int[] {0, 3}, new int[] {2, 0}, -ORTH_DIST, 0),
                        new BoardSpace(3, new int[] {1, 2, 4, 5}, new int[] {2, 4, 0, 6}, 0, 0),
@@ -69,16 +69,18 @@ public class BoardManager : MonoBehaviour
 
     private int boardState = 0; //Int from 0-7
     private int[] boardAngles = {0, 45, 90, 135, 180, 225, 270, 315};
-    private int nextState = 7;
+    private int nextState = 1;
     private float rotationSpeed = 60f;
 
     private GameObject player;
+    private PlayerController playerController;
 
 
     // Start is called before the first frame update
     void Start()
     {
         player = GameObject.Find("Player Microbe");
+        playerController = player.GetComponent<PlayerController>();
     }
 
     // Update is called once per frame
@@ -101,8 +103,17 @@ public class BoardManager : MonoBehaviour
         if ((int)(transform.rotation.eulerAngles.z + .1f) == boardAngles[nextState])
         {
             boardState = nextState;
-            nextState = Random.Range(0, 8);
+            //nextState = Random.Range(0, 8);
+            nextState++;
+            if (nextState == 8)
+            {
+                nextState = 0;
+            }
             transform.rotation = Quaternion.Euler(0, 0, boardAngles[boardState]);
+            playerController.setCurXPos(BOARDS[boardState, playerController.getCurSpace()].getXPos() +
+                                        transform.position.x);
+            playerController.setCurYPos(BOARDS[boardState, playerController.getCurSpace()].getYPos() +
+                                        transform.position.y);
             CancelInvoke();
         }
     }
