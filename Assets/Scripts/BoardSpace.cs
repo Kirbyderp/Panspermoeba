@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class BoardSpace
 {
-    int id;
-    int[] adjs; //ID's of adjacent spaces
-    int[] dirs; //dirs[i] indicates the direction to the space with ID adjs[i] 
+    private int id;
+    private int[] adjs; //ID's of adjacent spaces
+    private int[] dirs; //dirs[i] indicates the direction to the space with ID adjs[i] 
 
-    float xPos;
-    float yPos;
+    private float xPos;
+    private float yPos;
 
     public BoardSpace()
     {
@@ -29,22 +29,22 @@ public class BoardSpace
         yPos = yPosIn;
     }
 
-    public int[] getAdjs()
+    public int[] GetAdjs()
     {
         return adjs;
     }
 
-    public int[] getDirs()
+    public int[] GetDirs()
     {
         return dirs;
     }
 
-    public float getXPos()
+    public float GetXPos()
     {
         return xPos;
     }
 
-    public float getYPos()
+    public float GetYPos()
     {
         return yPos;
     }

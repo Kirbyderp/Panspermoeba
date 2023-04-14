@@ -22,150 +22,156 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (board.getBoardState() % 2 == 1 && !isMoving)
+        if (board.GetBoardState() % 2 == 1 && !isMoving)
         {
             if (Input.GetKey(KeyCode.D))
             {
-                if (canMove(0, BoardManager.BOARDS[board.getBoardState(), curSpace].getDirs()))
+                if (CanMove(0, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
                     isMoving = true;
-                    int spaceID = BoardManager.BOARDS[board.getBoardState(), curSpace].getAdjs()
-                                  [indexOfDir(0, BoardManager.BOARDS[board.getBoardState(), curSpace].getDirs())];
+                    int spaceID = BoardManager.BOARDS[board.GetBoardState(), curSpace].GetAdjs()
+                                  [IndexOfDir(0, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs())];
                     nextSpace = spaceID;
-                    nextXPos = BoardManager.BOARDS[board.getBoardState(), spaceID].getXPos() +
+                    nextXPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetXPos() +
                                board.transform.position.x;
-                    nextYPos = BoardManager.BOARDS[board.getBoardState(), spaceID].getYPos() +
+                    nextYPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetYPos() +
                                board.transform.position.y;
-                    InvokeRepeating("move", 0, 1/60f);
+                    InvokeRepeating("Move", 0, 1/60f);
                 }
             }
-            else if (Input.GetKey(KeyCode.W) && canMove(2, BoardManager.BOARDS[board.getBoardState(), curSpace].getDirs()))
+            else if (Input.GetKey(KeyCode.W) && CanMove(2, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
             {
-                if (canMove(2, BoardManager.BOARDS[board.getBoardState(), curSpace].getDirs()))
+                if (CanMove(2, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
                     isMoving = true;
-                    int spaceID = BoardManager.BOARDS[board.getBoardState(), curSpace].getAdjs()
-                                  [indexOfDir(2, BoardManager.BOARDS[board.getBoardState(), curSpace].getDirs())];
+                    int spaceID = BoardManager.BOARDS[board.GetBoardState(), curSpace].GetAdjs()
+                                  [IndexOfDir(2, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs())];
                     nextSpace = spaceID;
-                    nextXPos = BoardManager.BOARDS[board.getBoardState(), spaceID].getXPos() +
+                    nextXPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetXPos() +
                                board.transform.position.x;
-                    nextYPos = BoardManager.BOARDS[board.getBoardState(), spaceID].getYPos() +
+                    nextYPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetYPos() +
                                board.transform.position.y;
-                    InvokeRepeating("move", 0, 1 / 60f);
+                    InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
-            else if (Input.GetKey(KeyCode.A) && canMove(4, BoardManager.BOARDS[board.getBoardState(), curSpace].getDirs()))
+            else if (Input.GetKey(KeyCode.A) && CanMove(4, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
             {
-                if (canMove(4, BoardManager.BOARDS[board.getBoardState(), curSpace].getDirs()))
+                if (CanMove(4, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
                     isMoving = true;
-                    int spaceID = BoardManager.BOARDS[board.getBoardState(), curSpace].getAdjs()
-                                  [indexOfDir(4, BoardManager.BOARDS[board.getBoardState(), curSpace].getDirs())];
+                    int spaceID = BoardManager.BOARDS[board.GetBoardState(), curSpace].GetAdjs()
+                                  [IndexOfDir(4, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs())];
                     nextSpace = spaceID;
-                    nextXPos = BoardManager.BOARDS[board.getBoardState(), spaceID].getXPos() +
+                    nextXPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetXPos() +
                                board.transform.position.x;
-                    nextYPos = BoardManager.BOARDS[board.getBoardState(), spaceID].getYPos() +
+                    nextYPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetYPos() +
                                board.transform.position.y;
-                    InvokeRepeating("move", 0, 1 / 60f);
+                    InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
-            else if (Input.GetKey(KeyCode.S) && canMove(6, BoardManager.BOARDS[board.getBoardState(), curSpace].getDirs()))
+            else if (Input.GetKey(KeyCode.S) && CanMove(6, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
             {
-                if (canMove(6, BoardManager.BOARDS[board.getBoardState(), curSpace].getDirs()))
+                if (CanMove(6, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
                     isMoving = true;
-                    int spaceID = BoardManager.BOARDS[board.getBoardState(), curSpace].getAdjs()
-                                  [indexOfDir(6, BoardManager.BOARDS[board.getBoardState(), curSpace].getDirs())];
+                    int spaceID = BoardManager.BOARDS[board.GetBoardState(), curSpace].GetAdjs()
+                                  [IndexOfDir(6, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs())];
                     nextSpace = spaceID;
-                    nextXPos = BoardManager.BOARDS[board.getBoardState(), spaceID].getXPos() +
+                    nextXPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetXPos() +
                                board.transform.position.x;
-                    nextYPos = BoardManager.BOARDS[board.getBoardState(), spaceID].getYPos() +
+                    nextYPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetYPos() +
                                board.transform.position.y;
-                    InvokeRepeating("move", 0, 1 / 60f);
+                    InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
         }
-        else if (board.getBoardState() % 2 == 0 && !isMoving)
+        else if (board.GetBoardState() % 2 == 0 && !isMoving)
         {
             if (Input.GetKey(KeyCode.D) && Input.GetKey(KeyCode.W))
             {
-                if (canMove(1, BoardManager.BOARDS[board.getBoardState(), curSpace].getDirs()))
+                if (CanMove(1, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
                     isMoving = true;
-                    int spaceID = BoardManager.BOARDS[board.getBoardState(), curSpace].getAdjs()
-                                  [indexOfDir(1, BoardManager.BOARDS[board.getBoardState(), curSpace].getDirs())];
+                    int spaceID = BoardManager.BOARDS[board.GetBoardState(), curSpace].GetAdjs()
+                                  [IndexOfDir(1, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs())];
                     nextSpace = spaceID;
-                    nextXPos = BoardManager.BOARDS[board.getBoardState(), spaceID].getXPos() +
+                    nextXPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetXPos() +
                                board.transform.position.x;
-                    nextYPos = BoardManager.BOARDS[board.getBoardState(), spaceID].getYPos() +
+                    nextYPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetYPos() +
                                board.transform.position.y;
-                    InvokeRepeating("move", 0, 1 / 60f);
+                    InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
             else if (Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.A))
             {
-                if (canMove(3, BoardManager.BOARDS[board.getBoardState(), curSpace].getDirs()))
+                if (CanMove(3, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
                     isMoving = true;
-                    int spaceID = BoardManager.BOARDS[board.getBoardState(), curSpace].getAdjs()
-                                  [indexOfDir(3, BoardManager.BOARDS[board.getBoardState(), curSpace].getDirs())];
+                    int spaceID = BoardManager.BOARDS[board.GetBoardState(), curSpace].GetAdjs()
+                                  [IndexOfDir(3, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs())];
                     nextSpace = spaceID;
-                    nextXPos = BoardManager.BOARDS[board.getBoardState(), spaceID].getXPos() +
+                    nextXPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetXPos() +
                                board.transform.position.x;
-                    nextYPos = BoardManager.BOARDS[board.getBoardState(), spaceID].getYPos() +
+                    nextYPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetYPos() +
                                board.transform.position.y;
-                    InvokeRepeating("move", 0, 1 / 60f);
+                    InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
             else if (Input.GetKey(KeyCode.A) && Input.GetKey(KeyCode.S))
             {
-                if (canMove(5, BoardManager.BOARDS[board.getBoardState(), curSpace].getDirs()))
+                if (CanMove(5, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
                     isMoving = true;
-                    int spaceID = BoardManager.BOARDS[board.getBoardState(), curSpace].getAdjs()
-                                  [indexOfDir(5, BoardManager.BOARDS[board.getBoardState(), curSpace].getDirs())];
+                    int spaceID = BoardManager.BOARDS[board.GetBoardState(), curSpace].GetAdjs()
+                                  [IndexOfDir(5, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs())];
                     nextSpace = spaceID;
-                    nextXPos = BoardManager.BOARDS[board.getBoardState(), spaceID].getXPos() +
+                    nextXPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetXPos() +
                                board.transform.position.x;
-                    nextYPos = BoardManager.BOARDS[board.getBoardState(), spaceID].getYPos() +
+                    nextYPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetYPos() +
                                board.transform.position.y;
-                    InvokeRepeating("move", 0, 1 / 60f);
+                    InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
             else if (Input.GetKey(KeyCode.S) && Input.GetKey(KeyCode.D))
             {
-                if (canMove(7, BoardManager.BOARDS[board.getBoardState(), curSpace].getDirs()))
+                if (CanMove(7, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
                     isMoving = true;
-                    int spaceID = BoardManager.BOARDS[board.getBoardState(), curSpace].getAdjs()
-                                  [indexOfDir(7, BoardManager.BOARDS[board.getBoardState(), curSpace].getDirs())];
+                    int spaceID = BoardManager.BOARDS[board.GetBoardState(), curSpace].GetAdjs()
+                                  [IndexOfDir(7, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs())];
                     nextSpace = spaceID;
-                    nextXPos = BoardManager.BOARDS[board.getBoardState(), spaceID].getXPos() +
+                    nextXPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetXPos() +
                                board.transform.position.x;
-                    nextYPos = BoardManager.BOARDS[board.getBoardState(), spaceID].getYPos() +
+                    nextYPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetYPos() +
                                board.transform.position.y;
-                    InvokeRepeating("move", 0, 1 / 60f);
+                    InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
         }
+
     }
 
-    public int getCurSpace()
+    public int GetCurSpace()
     {
         return curSpace;
     }
 
-    public void setCurXPos(float xIn)
+    public bool GetIsMoving()
+    {
+        return isMoving;
+    }
+
+    public void SetCurXPos(float xIn)
     {
         curXPos = xIn;
     }
 
-    public void setCurYPos(float yIn)
+    public void SetCurYPos(float yIn)
     {
         curYPos = yIn;
     }
 
-    private bool canMove(int dir, int[] allowedDirs)
+    private bool CanMove(int dir, int[] allowedDirs)
     {
         
         for (int i = 0; i < allowedDirs.Length; i++)
@@ -178,7 +184,7 @@ public class PlayerController : MonoBehaviour
         return false;
     }
 
-    private int indexOfDir(int dir, int[] allowedDirs)
+    private int IndexOfDir(int dir, int[] allowedDirs)
     {
 
         for (int i = 0; i < allowedDirs.Length; i++)
@@ -191,7 +197,7 @@ public class PlayerController : MonoBehaviour
         return -1;
     }
 
-    private void move()
+    private void Move()
     {
         Vector3 vel = (new Vector3(nextXPos, nextYPos, 0) - new Vector3(curXPos, curYPos, 0)) / 60f;
         transform.Translate(vel, Space.World);
