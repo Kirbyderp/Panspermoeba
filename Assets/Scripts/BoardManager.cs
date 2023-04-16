@@ -74,7 +74,6 @@ public class BoardManager : MonoBehaviour
 
     private GameObject player;
     private PlayerController playerController;
-    private GameManager gameManager;
 
 
     // Start is called before the first frame update
@@ -82,21 +81,18 @@ public class BoardManager : MonoBehaviour
     {
         player = GameObject.Find("Player Microbe");
         playerController = player.GetComponent<PlayerController>();
-        gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (!playerController.GetWaitingForAnim())
         {
-            InvokeRepeating("RotateAsteroid", 0, 1/rotationSpeed);
-        }
-
-        if (!playerController.GetIsMoving() && Input.GetKeyDown(KeyCode.H))
-        {
-            ResourceManager.Scavenge(4);
-            gameManager.UpdateHandDisplay();
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                playerController.SetWaitingForAnim(true);
+                InvokeRepeating("RotateAsteroid", 0, 1 / rotationSpeed);
+            }
         }
     }
 
@@ -128,6 +124,7 @@ public class BoardManager : MonoBehaviour
             playerController.SetCurYPos(BOARDS[boardState, playerController.GetCurSpace()].GetYPos() +
                                         transform.position.y);
             CancelInvoke();
+            playerController.SetWaitingForAnim(false);
         }
     }
 }

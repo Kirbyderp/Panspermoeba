@@ -70,4 +70,87 @@ public class ResourceManager
             }
         }
     }
+
+    public static bool CanRaiseTemp()
+    {
+        foreach(Resource r in playerHand)
+        {
+            if (r.ToString().Equals(Resource.TYPES[1]))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static void RaiseTemp()
+    {
+        foreach (Resource r in playerHand)
+        {
+            if (r.ToString().Equals(Resource.TYPES[1]))
+            {
+                discardPile.Add(r);
+                playerHand.Remove(r);
+                break;
+            }
+        }
+    }
+
+    public static bool CanRaiseGene()
+    {
+        bool hasS = false, hasP = false, hasB = false;
+        foreach (Resource r in playerHand)
+        {
+            if (r.ToString().Equals(Resource.TYPES[1]))
+            {
+                hasS = true;
+            }
+            if (r.ToString().Equals(Resource.TYPES[2]))
+            {
+                hasP = true;
+            }
+            if (r.ToString().Equals(Resource.TYPES[3]))
+            {
+                hasB = true;
+            }
+            if (hasS && hasP && hasB)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static void RaiseGene()
+    {
+        foreach (Resource r in playerHand)
+        {
+            if (r.ToString().Equals(Resource.TYPES[1]))
+            {
+                discardPile.Add(r);
+                playerHand.Remove(r);
+                break;
+            }
+        }
+
+        foreach (Resource r in playerHand)
+        {
+            if (r.ToString().Equals(Resource.TYPES[2]))
+            {
+                discardPile.Add(r);
+                playerHand.Remove(r);
+                break;
+            }
+        }
+
+        foreach (Resource r in playerHand)
+        {
+            if (r.ToString().Equals(Resource.TYPES[3]))
+            {
+                discardPile.Add(r);
+                playerHand.Remove(r);
+                break;
+            }
+        }
+    }
 }
