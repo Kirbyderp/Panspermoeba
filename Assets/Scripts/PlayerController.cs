@@ -34,16 +34,16 @@ public class PlayerController : MonoBehaviour
             }
             else if (Input.GetKeyDown(KeyCode.T) && ResourceManager.CanRaiseTemp() && gameManager.CanRaiseTemp(1))
             {
+                waitingForAnim = true;
                 ResourceManager.RaiseTemp();
                 gameManager.UpdateHandDisplay();
-                waitingForAnim = true;
                 gameManager.RaiseThermobar(1);
             }
             else if (Input.GetKeyDown(KeyCode.G) && ResourceManager.CanRaiseGene() && gameManager.CanRaiseGene(1))
             {
+                waitingForAnim = true;
                 ResourceManager.RaiseGene();
                 gameManager.UpdateHandDisplay();
-                waitingForAnim = true;
                 gameManager.RaiseRadibar(1);
             }
         }
