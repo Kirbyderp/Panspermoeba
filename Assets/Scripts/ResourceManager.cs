@@ -46,8 +46,9 @@ public class ResourceManager
         }
     }
 
-    public static void Scavenge(int cardNum)
+    public static void Scavenge(int cardNum, int curSpace)
     {
+        Debug.Log(cardNum);
         for (int i = 0; i < cardNum; i++)
         {
             if (resourceDeck.Count == 0 && discardPile.Count != 0)
@@ -67,6 +68,14 @@ public class ResourceManager
                     playerHand.Add(resourceDeck[cardIndex]);
                 }
                 resourceDeck.RemoveAt(cardIndex);
+            }
+        }
+
+        if (cardNum > 1)
+        {
+            for (int i = 0; i < BoardManager.BOARDS.GetLength(0); i++)
+            {
+                BoardManager.BOARDS[i, curSpace].DecrementScavAmt();
             }
         }
     }

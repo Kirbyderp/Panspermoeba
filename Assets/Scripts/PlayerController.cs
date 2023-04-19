@@ -29,7 +29,7 @@ public class PlayerController : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.H))
             {
-                ResourceManager.Scavenge(4);
+                ResourceManager.Scavenge(BoardManager.BOARDS[board.GetBoardState(), curSpace].GetScavAmt(), curSpace);
                 gameManager.UpdateHandDisplay();
             }
             else if (Input.GetKeyDown(KeyCode.T) && ResourceManager.CanRaiseTemp() && gameManager.CanRaiseTemp(1))

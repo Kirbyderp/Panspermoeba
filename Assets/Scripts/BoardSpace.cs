@@ -11,6 +11,8 @@ public class BoardSpace
     private float xPos;
     private float yPos;
 
+    private int scavAmt;
+
     public BoardSpace()
     {
         id = 0;
@@ -18,6 +20,7 @@ public class BoardSpace
         dirs = new int[0];
         xPos = 0;
         yPos = 0;
+        scavAmt = 4;
     }
 
     public BoardSpace(int idIn, int[] adjsIn, int[] dirsIn, float xPosIn, float yPosIn)
@@ -27,6 +30,7 @@ public class BoardSpace
         dirs = dirsIn;
         xPos = xPosIn;
         yPos = yPosIn;
+        scavAmt = 4;
     }
 
     public int[] GetAdjs()
@@ -47,5 +51,15 @@ public class BoardSpace
     public float GetYPos()
     {
         return yPos;
+    }
+
+    public int GetScavAmt()
+    {
+        return scavAmt;
+    }
+
+    public void DecrementScavAmt()
+    {
+        scavAmt--;
     }
 }
