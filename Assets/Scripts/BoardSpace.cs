@@ -12,6 +12,7 @@ public class BoardSpace
     private float yPos;
 
     private int scavAmt;
+    private int tempReduce, geneReduce;
 
     public BoardSpace()
     {
@@ -21,9 +22,11 @@ public class BoardSpace
         xPos = 0;
         yPos = 0;
         scavAmt = 4;
+        tempReduce = 1;
+        geneReduce = 1;
     }
 
-    public BoardSpace(int idIn, int[] adjsIn, int[] dirsIn, float xPosIn, float yPosIn)
+    public BoardSpace(int idIn, int[] adjsIn, int[] dirsIn, float xPosIn, float yPosIn, int tempIn, int geneIn)
     {
         id = idIn;
         adjs = adjsIn;
@@ -31,6 +34,8 @@ public class BoardSpace
         xPos = xPosIn;
         yPos = yPosIn;
         scavAmt = 4;
+        tempReduce = tempIn;
+        geneReduce = geneIn;
     }
 
     public int[] GetAdjs()
@@ -61,5 +66,15 @@ public class BoardSpace
     public void DecrementScavAmt()
     {
         scavAmt--;
+    }
+
+    public int GetTempReduce()
+    {
+        return tempReduce;
+    }
+
+    public int GetGeneReduce()
+    {
+        return geneReduce;
     }
 }

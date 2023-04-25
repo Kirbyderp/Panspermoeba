@@ -16,6 +16,11 @@ public class GameManager : MonoBehaviour
                                        4.22f, 4.86f, 5.5f, 6.14f, 6.78f}; //.64 diff
     private int thermoLevel = 0, radiLevel = 0, endLevel = 0, count = 0;
     private PlayerController playerController;
+    private BoardManager boardManager;
+
+    private GameObject[] actionButtonsDeselected = new GameObject[5],
+                         actionButtonsSelected = new GameObject[5];
+    bool waitingForEndTurnAnim = false;
 
 
     // Start is called before the first frame update
@@ -30,6 +35,23 @@ public class GameManager : MonoBehaviour
         ResourceManager.SetUpDeck();
 
         playerController = GameObject.Find("Player Microbe").GetComponent<PlayerController>();
+        boardManager = GameObject.Find("Game Board").GetComponent<BoardManager>();
+
+        actionButtonsDeselected[0] = GameObject.Find("Raise Temp Button D");
+        actionButtonsDeselected[1] = GameObject.Find("Raise Gene Button D");
+        actionButtonsDeselected[2] = GameObject.Find("Scavenge Button D");
+        actionButtonsDeselected[3] = GameObject.Find("Info Page Button D");
+        actionButtonsDeselected[4] = GameObject.Find("End Turn Button D");
+
+        actionButtonsSelected[0] = GameObject.Find("Raise Temp Button S");
+        actionButtonsSelected[1] = GameObject.Find("Raise Gene Button S");
+        actionButtonsSelected[2] = GameObject.Find("Scavenge Button S");
+        actionButtonsSelected[3] = GameObject.Find("Info Page Button S");
+        actionButtonsSelected[4] = GameObject.Find("End Turn Button S");
+        foreach (GameObject aButton in actionButtonsSelected)
+        {
+            aButton.SetActive(false);
+        }
     }
 
     // Update is called once per frame
@@ -93,6 +115,7 @@ public class GameManager : MonoBehaviour
             thermoLevel = endLevel;
             CancelInvoke();
             playerController.SetWaitingForAnim(false);
+            waitingForEndTurnAnim = false;
         }
     }
 
@@ -126,6 +149,65 @@ public class GameManager : MonoBehaviour
             radiLevel = endLevel;
             CancelInvoke();
             playerController.SetWaitingForAnim(false);
+            waitingForEndTurnAnim = false;
+        }
+    }
+
+    public void SelectButton(int index)
+    {
+        actionButtonsSelected[index].SetActive(true);
+        actionButtonsDeselected[index].SetActive(false);
+    }
+
+    public void DeselectButton(int index)
+    {
+        actionButtonsDeselected[index].SetActive(true);
+        actionButtonsSelected[index].SetActive(false);
+    }
+
+    public void EndTurn()
+    {
+        BoardSpace curSpace = BoardManager.BOARDS[boardManager.GetBoardState(), playerController.GetCurSpace()];
+        int anim = 0;
+        while (anim < 2)
+        {
+            if (!waitingForEndTurnAnim && anim == 0)
+            {
+                if (CanRaiseTemp(curSpace.GetTempReduce()))
+                {
+                    waitingForEndTurnAnim = true;
+                    RaiseThermobar(curSpace.GetTempReduce());
+                }
+                else
+                {
+                    waitingForEndTurnAnim = true;
+                    RaiseThermobar(-thermoLevel);
+                }
+            }
+            
+            if (!waitingForEndTurnAnim)
+            {
+                anim++;
+            }
+
+            if (!waitingForEndTurnAnim && anim == 1)
+            {
+                if (CanRaiseGene(curSpace.GetGeneReduce()))
+                {
+                    waitingForEndTurnAnim = true;
+                    RaiseRadibar(curSpace.GetGeneReduce());
+                }
+                else
+                {
+                    waitingForEndTurnAnim = true;
+                    RaiseRadibar(-radiLevel);
+                }
+            }
+
+            if (!waitingForEndTurnAnim)
+            {
+                anim++;
+            }
         }
     }
 }

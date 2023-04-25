@@ -11,6 +11,7 @@ public class PlayerController : MonoBehaviour
     private BoardManager board;
     private bool waitingForAnim = false;
     private GameManager gameManager;
+    private bool[] selectedButtons = {false, false, false, false, false};
 
     // Start is called before the first frame update
     void Start()
@@ -19,12 +20,51 @@ public class PlayerController : MonoBehaviour
         gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
         curXPos = board.transform.position.x;
         curYPos = board.transform.position.y;
+
     }
 
     // Update is called once per frame
     void Update()
     {
         LookForMoveInput();
+        HandleButtonSelections();
+        if (Input.GetKeyDown(KeyCode.Mouse0) && !waitingForAnim)
+        {
+            int index = GetButtonSelected();
+            if (index != -1)
+            {
+                if (index == 0 && ResourceManager.CanRaiseTemp() && gameManager.CanRaiseTemp(1))
+                {
+                    waitingForAnim = true;
+                    ResourceManager.RaiseTemp();
+                    gameManager.UpdateHandDisplay();
+                    gameManager.RaiseThermobar(1);
+                }
+                else if (index == 1 && ResourceManager.CanRaiseGene() && gameManager.CanRaiseGene(1))
+                {
+                    waitingForAnim = true;
+                    ResourceManager.RaiseGene();
+                    gameManager.UpdateHandDisplay();
+                    gameManager.RaiseRadibar(1);
+                }
+                else if (index == 2)
+                {
+                    ResourceManager.Scavenge(BoardManager.BOARDS[board.GetBoardState(), curSpace].GetScavAmt(), curSpace);
+                    gameManager.UpdateHandDisplay();
+                }
+                else if (index == 3)
+                {
+                    //bring up info page
+                }
+                else if (index == 4)
+                {
+                    waitingForAnim = true;
+                    gameManager.EndTurn();
+                    waitingForAnim = false;
+                }
+            }
+        }
+
         if (!waitingForAnim)
         {
             if (Input.GetKeyDown(KeyCode.H))
@@ -245,5 +285,97 @@ public class PlayerController : MonoBehaviour
             CancelInvoke();
             waitingForAnim = false;
         }
+    }
+
+    private void HandleButtonSelections()
+    {
+        Vector3 mousePos = Input.mousePosition;
+
+        if (mousePos.x > 1153 && mousePos.x < 1343 && mousePos.y > 275 && mousePos.y < 465)
+        {
+            gameManager.SelectButton(0);
+            selectedButtons[0] = true;
+        }
+        else if (selectedButtons[0])
+        {
+            gameManager.DeselectButton(0);
+            selectedButtons[0] = false;
+        }
+
+        if (mousePos.x > 1391 && mousePos.x < 1579 && mousePos.y > 275 && mousePos.y < 465)
+        {
+            gameManager.SelectButton(1);
+            selectedButtons[1] = true;
+        }
+        else if (selectedButtons[1])
+        {
+            gameManager.DeselectButton(1);
+            selectedButtons[1] = false;
+        }
+
+        if (mousePos.x > 915 && mousePos.x < 1105 && mousePos.y > 39 && mousePos.y < 226)
+        {
+            gameManager.SelectButton(2);
+            selectedButtons[2] = true;
+        }
+        else if (selectedButtons[2])
+        {
+            gameManager.DeselectButton(2);
+            selectedButtons[2] = false;
+        }
+
+        if (mousePos.x > 1153 && mousePos.x < 1343 && mousePos.y > 39 && mousePos.y < 226)
+        {
+            gameManager.SelectButton(3);
+            selectedButtons[3] = true;
+        }
+        else if (selectedButtons[3])
+        {
+            gameManager.DeselectButton(3);
+            selectedButtons[3] = false;
+        }
+
+        if (mousePos.x > 1391 && mousePos.x < 1579 && mousePos.y > 39 && mousePos.y < 226)
+        {
+            gameManager.SelectButton(4);
+            selectedButtons[4] = true;
+        }
+        else if (selectedButtons[4])
+        {
+            gameManager.DeselectButton(4);
+            selectedButtons[4] = false;
+        }
+    }
+
+    private int GetButtonSelected()
+    {
+        Vector3 mousePos = Input.mousePosition;
+
+        if (mousePos.x > 1153 && mousePos.x < 1343 && mousePos.y > 275 && mousePos.y < 465)
+        {
+            return 0;
+        }
+
+        if (mousePos.x > 1391 && mousePos.x < 1579 && mousePos.y > 275 && mousePos.y < 465)
+        {
+            return 1;
+        }
+
+        if (mousePos.x > 915 && mousePos.x < 1105 && mousePos.y > 39 && mousePos.y < 226)
+        {
+            return 2;
+        }
+
+        if (mousePos.x > 1153 && mousePos.x < 1343 && mousePos.y > 39 && mousePos.y < 226)
+        {
+            return 3;
+        }
+
+        if (mousePos.x > 1391 && mousePos.x < 1579 && mousePos.y > 39 && mousePos.y < 226)
+        {
+            return 4;
+        }
+
+        return -1;
     }
 }
