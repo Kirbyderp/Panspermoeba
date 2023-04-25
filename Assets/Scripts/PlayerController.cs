@@ -59,8 +59,7 @@ public class PlayerController : MonoBehaviour
                 else if (index == 4)
                 {
                     waitingForAnim = true;
-                    gameManager.EndTurn();
-                    waitingForAnim = false;
+                    gameManager.EndTurnBoard();
                 }
             }
         }

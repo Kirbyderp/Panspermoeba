@@ -74,6 +74,7 @@ public class BoardManager : MonoBehaviour
 
     private GameObject player;
     private PlayerController playerController;
+    private GameManager gameManager;
 
 
     // Start is called before the first frame update
@@ -81,19 +82,20 @@ public class BoardManager : MonoBehaviour
     {
         player = GameObject.Find("Player Microbe");
         playerController = player.GetComponent<PlayerController>();
+        gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (!playerController.GetWaitingForAnim())
+        /*if (!playerController.GetWaitingForAnim())
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 playerController.SetWaitingForAnim(true);
                 InvokeRepeating("RotateAsteroid", 0, 1 / rotationSpeed);
             }
-        }
+        }*/
     }
 
     public int GetBoardState()
@@ -101,7 +103,12 @@ public class BoardManager : MonoBehaviour
         return boardState;
     }
 
-    void RotateAsteroid()
+    public void RotateBoard()
+    {
+        InvokeRepeating("RotateAsteroid", 0, 1 / rotationSpeed);
+    }
+
+    public void RotateAsteroid()
     {
         transform.Rotate(new Vector3(0, 0, 1));
         player.transform.rotation = Quaternion.Euler(0, 0, 0);
@@ -112,19 +119,20 @@ public class BoardManager : MonoBehaviour
         if ((int)(transform.rotation.eulerAngles.z + .1f) == boardAngles[nextState])
         {
             boardState = nextState;
-            //nextState = Random.Range(0, 8);
-            nextState++;
+            nextState = Random.Range(0, 8);
+            /*nextState++;
             if (nextState == 8)
             {
                 nextState = 0;
-            }
+            }*/
             transform.rotation = Quaternion.Euler(0, 0, boardAngles[boardState]);
             playerController.SetCurXPos(BOARDS[boardState, playerController.GetCurSpace()].GetXPos() +
                                         transform.position.x);
             playerController.SetCurYPos(BOARDS[boardState, playerController.GetCurSpace()].GetYPos() +
                                         transform.position.y);
             CancelInvoke();
-            playerController.SetWaitingForAnim(false);
+            //playerController.SetWaitingForAnim(false);
+            gameManager.EndTurnThermo();
         }
     }
 }

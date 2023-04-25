@@ -20,8 +20,9 @@ public class GameManager : MonoBehaviour
 
     private GameObject[] actionButtonsDeselected = new GameObject[5],
                          actionButtonsSelected = new GameObject[5];
+    
     bool waitingForEndTurnAnim = false;
-
+    int endTurnToLower = 0, numLowered = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -114,8 +115,22 @@ public class GameManager : MonoBehaviour
                                                          thermobar.transform.localScale.z);
             thermoLevel = endLevel;
             CancelInvoke();
-            playerController.SetWaitingForAnim(false);
-            waitingForEndTurnAnim = false;
+            if (!waitingForEndTurnAnim)
+            {
+                playerController.SetWaitingForAnim(false);
+            }
+            else
+            {
+                numLowered++;
+                if (numLowered < endTurnToLower)
+                {
+                    RaiseThermobar(-1);
+                }
+                else
+                {
+                    EndTurnRadi();
+                }
+            }
         }
     }
 
@@ -148,8 +163,22 @@ public class GameManager : MonoBehaviour
                                                        radibar.transform.localScale.z);
             radiLevel = endLevel;
             CancelInvoke();
-            playerController.SetWaitingForAnim(false);
-            waitingForEndTurnAnim = false;
+            if (!waitingForEndTurnAnim)
+            {
+                playerController.SetWaitingForAnim(false);
+            }
+            else
+            {
+                numLowered++;
+                if (numLowered < endTurnToLower)
+                {
+                    RaiseRadibar(-1);
+                }
+                else
+                {
+                    EndTurnFinal();
+                }
+            }
         }
     }
 
@@ -165,49 +194,51 @@ public class GameManager : MonoBehaviour
         actionButtonsSelected[index].SetActive(false);
     }
 
-    public void EndTurn()
+    public void EndTurnBoard()
+    {
+        waitingForEndTurnAnim = true;
+        boardManager.RotateBoard();
+    }
+
+    public void EndTurnThermo()
     {
         BoardSpace curSpace = BoardManager.BOARDS[boardManager.GetBoardState(), playerController.GetCurSpace()];
-        int anim = 0;
-        while (anim < 2)
+        numLowered = 0;
+        if (CanRaiseTemp(curSpace.GetTempReduce()))
         {
-            if (!waitingForEndTurnAnim && anim == 0)
-            {
-                if (CanRaiseTemp(curSpace.GetTempReduce()))
-                {
-                    waitingForEndTurnAnim = true;
-                    RaiseThermobar(curSpace.GetTempReduce());
-                }
-                else
-                {
-                    waitingForEndTurnAnim = true;
-                    RaiseThermobar(-thermoLevel);
-                }
-            }
-            
-            if (!waitingForEndTurnAnim)
-            {
-                anim++;
-            }
-
-            if (!waitingForEndTurnAnim && anim == 1)
-            {
-                if (CanRaiseGene(curSpace.GetGeneReduce()))
-                {
-                    waitingForEndTurnAnim = true;
-                    RaiseRadibar(curSpace.GetGeneReduce());
-                }
-                else
-                {
-                    waitingForEndTurnAnim = true;
-                    RaiseRadibar(-radiLevel);
-                }
-            }
-
-            if (!waitingForEndTurnAnim)
-            {
-                anim++;
-            }
+            endTurnToLower = -curSpace.GetTempReduce();
         }
+        else
+        {
+            endTurnToLower = thermoLevel;
+        }
+        if (numLowered < endTurnToLower)
+        {
+            RaiseThermobar(-1);
+        }
+    }
+
+    public void EndTurnRadi()
+    {
+        BoardSpace curSpace = BoardManager.BOARDS[boardManager.GetBoardState(), playerController.GetCurSpace()];
+        numLowered = 0;
+        if (CanRaiseGene(curSpace.GetGeneReduce()))
+        {
+            endTurnToLower = -curSpace.GetGeneReduce();
+        }
+        else
+        {
+            endTurnToLower = radiLevel;
+        }
+        if (numLowered < endTurnToLower)
+        {
+            RaiseRadibar(-1);
+        }
+    }
+
+    public void EndTurnFinal()
+    {
+        waitingForEndTurnAnim = false;
+        playerController.SetWaitingForAnim(false);
     }
 }
