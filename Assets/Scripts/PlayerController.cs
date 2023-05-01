@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour
     private int count = 0;
     private BoardManager board;
     private bool waitingForAnim = false;
+    private bool inInfoPage = false;
     private GameManager gameManager;
     private bool[] selectedButtons = {false, false, false, false, false};
 
@@ -31,7 +32,7 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Mouse0) && !waitingForAnim)
         {
             int index = GetButtonSelected();
-            if (index != -1)
+            if (index != -1 && !inInfoPage)
             {
                 if (index == 0 && ResourceManager.CanRaiseTemp() && gameManager.CanRaiseTemp(1))
                 {
@@ -54,7 +55,8 @@ public class PlayerController : MonoBehaviour
                 }
                 else if (index == 3)
                 {
-                    //bring up info page
+                    inInfoPage = true;
+                    gameManager.ShowInfoScreen();
                 }
                 else if (index == 4)
                 {
@@ -62,9 +64,14 @@ public class PlayerController : MonoBehaviour
                     gameManager.EndTurnBoard();
                 }
             }
+            else if (index == 3 && inInfoPage)
+            {
+                gameManager.HideInfoScreen();
+                inInfoPage = false;
+            }
         }
 
-        if (!waitingForAnim)
+        if (!waitingForAnim && !inInfoPage)
         {
             if (Input.GetKeyDown(KeyCode.H))
             {
@@ -101,6 +108,16 @@ public class PlayerController : MonoBehaviour
     public void SetWaitingForAnim(bool input)
     {
         waitingForAnim = input;
+    }
+
+    public bool GetInInfoPage()
+    {
+        return inInfoPage;
+    }
+
+    public void SetInInfoPage(bool input)
+    {
+        inInfoPage = input;
     }
 
     public void SetCurXPos(float xIn)
@@ -141,7 +158,7 @@ public class PlayerController : MonoBehaviour
 
     private void LookForMoveInput()
     {
-        if (board.GetBoardState() % 2 == 1 && !waitingForAnim)
+        if (board.GetBoardState() % 2 == 1 && !waitingForAnim && !inInfoPage)
         {
             if (Input.GetKey(KeyCode.D))
             {
@@ -204,7 +221,7 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
-        else if (board.GetBoardState() % 2 == 0 && !waitingForAnim)
+        else if (board.GetBoardState() % 2 == 0 && !waitingForAnim && !inInfoPage)
         {
             if (Input.GetKey(KeyCode.D) && Input.GetKey(KeyCode.W))
             {

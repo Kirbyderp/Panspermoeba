@@ -20,6 +20,7 @@ public class GameManager : MonoBehaviour
 
     private GameObject[] actionButtonsDeselected = new GameObject[5],
                          actionButtonsSelected = new GameObject[5];
+    private GameObject infoScreen;
     
     bool waitingForEndTurnAnim = false;
     int endTurnToLower = 0, numLowered = 0;
@@ -53,6 +54,9 @@ public class GameManager : MonoBehaviour
         {
             aButton.SetActive(false);
         }
+
+        infoScreen = GameObject.Find("Info Screen");
+        infoScreen.SetActive(false);
     }
 
     // Update is called once per frame
@@ -192,6 +196,16 @@ public class GameManager : MonoBehaviour
     {
         actionButtonsDeselected[index].SetActive(true);
         actionButtonsSelected[index].SetActive(false);
+    }
+
+    public void ShowInfoScreen()
+    {
+        infoScreen.SetActive(true);
+    }
+
+    public void HideInfoScreen()
+    {
+        infoScreen.SetActive(false);
     }
 
     public void EndTurnBoard()
