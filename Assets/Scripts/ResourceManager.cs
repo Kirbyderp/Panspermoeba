@@ -80,13 +80,18 @@ public class ResourceManager
         }
     }
 
-    public static bool CanRaiseTemp()
+    public static bool CanRaiseTemp(int extraS)
     {
+        int count = 0;
         foreach(Resource r in playerHand)
         {
             if (r.ToString().Equals(Resource.TYPES[1]))
             {
-                return true;
+                count++;
+                if (count == extraS + 1)
+                {
+                    return true;
+                }
             }
         }
         return false;
@@ -105,14 +110,19 @@ public class ResourceManager
         }
     }
 
-    public static bool CanRaiseGene()
+    public static bool CanRaiseGene(int extraS)
     {
         bool hasS = false, hasP = false, hasB = false;
+        int count = 0;
         foreach (Resource r in playerHand)
         {
             if (r.ToString().Equals(Resource.TYPES[1]))
             {
-                hasS = true;
+                count++;
+                if (count == 1 + extraS)
+                {
+                    hasS = true;
+                }
             }
             if (r.ToString().Equals(Resource.TYPES[2]))
             {
@@ -155,6 +165,36 @@ public class ResourceManager
         foreach (Resource r in playerHand)
         {
             if (r.ToString().Equals(Resource.TYPES[3]))
+            {
+                discardPile.Add(r);
+                playerHand.Remove(r);
+                break;
+            }
+        }
+    }
+
+    public static bool HasSugar(int num)
+    {
+        int count = 0;
+        foreach (Resource r in playerHand)
+        {
+            if (r.ToString().Equals(Resource.TYPES[1]))
+            {
+                count++;
+                if (count == num)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static void RemoveSugar()
+    {
+        foreach (Resource r in playerHand)
+        {
+            if (r.ToString().Equals(Resource.TYPES[1]))
             {
                 discardPile.Add(r);
                 playerHand.Remove(r);

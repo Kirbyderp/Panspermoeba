@@ -18,10 +18,18 @@ public class GameManager : MonoBehaviour
     private PlayerController playerController;
     private BoardManager boardManager;
 
+    private GameObject player;
+    private GameObject scavAmtIndicatorToggle;
+    private GameObject[,] scavAmtIndicators;
+
     private GameObject[] actionButtonsDeselected = new GameObject[5],
                          actionButtonsSelected = new GameObject[5];
-    private GameObject infoScreen;
     
+    private GameObject infoScreen, infoPage1, infoPage2;
+    private GameObject[] infoButtonsDeselected = new GameObject[2],
+                         infoButtonsSelected = new GameObject[2];
+    private int activePage = 1;
+
     bool waitingForEndTurnAnim = false;
     int endTurnToLower = 0, numLowered = 0;
 
@@ -38,6 +46,18 @@ public class GameManager : MonoBehaviour
 
         playerController = GameObject.Find("Player Microbe").GetComponent<PlayerController>();
         boardManager = GameObject.Find("Game Board").GetComponent<BoardManager>();
+
+        player = GameObject.Find("Player Microbe");
+        scavAmtIndicatorToggle = GameObject.Find("ScavAmt Indicators");
+        scavAmtIndicators = new GameObject[7, 4];
+        for (int i = 0; i < 7; i++)
+        {
+            for (int j = 0; j < 4; j++)
+            {
+                scavAmtIndicators[i, j] = GameObject.Find("Circle Indicator" + i + j);
+            }
+        }
+        scavAmtIndicatorToggle.SetActive(false);
 
         actionButtonsDeselected[0] = GameObject.Find("Raise Temp Button D");
         actionButtonsDeselected[1] = GameObject.Find("Raise Gene Button D");
@@ -56,6 +76,16 @@ public class GameManager : MonoBehaviour
         }
 
         infoScreen = GameObject.Find("Info Screen");
+        infoPage1 = GameObject.Find("Info Page 1");
+        infoPage2 = GameObject.Find("Info Page 2");
+        infoButtonsDeselected[0] = GameObject.Find("Left Button D");
+        infoButtonsDeselected[1] = GameObject.Find("Right Button D");
+        infoButtonsSelected[0] = GameObject.Find("Left Button S");
+        infoButtonsSelected[1] = GameObject.Find("Left Button S");
+        
+        infoButtonsSelected[0].SetActive(false);
+        infoButtonsSelected[1].SetActive(false);
+        infoPage2.SetActive(false);
         infoScreen.SetActive(false);
     }
 
@@ -198,6 +228,18 @@ public class GameManager : MonoBehaviour
         actionButtonsSelected[index].SetActive(false);
     }
 
+    public void SelectInfoButton(int index)
+    {
+        infoButtonsSelected[index].SetActive(true);
+        infoButtonsDeselected[index].SetActive(false);
+    }
+
+    public void DeselectInfoButton(int index)
+    {
+        infoButtonsDeselected[index].SetActive(true);
+        infoButtonsSelected[index].SetActive(false);
+    }
+
     public void ShowInfoScreen()
     {
         infoScreen.SetActive(true);
@@ -206,6 +248,22 @@ public class GameManager : MonoBehaviour
     public void HideInfoScreen()
     {
         infoScreen.SetActive(false);
+    }
+
+    public void InfoButtonAction()
+    {
+        if (activePage == 1)
+        {
+            activePage = 2;
+            infoPage1.SetActive(false);
+            infoPage2.SetActive(true);
+        }
+        else
+        {
+            activePage = 1;
+            infoPage2.SetActive(false);
+            infoPage1.SetActive(true);
+        }
     }
 
     public void EndTurnBoard()
@@ -230,6 +288,10 @@ public class GameManager : MonoBehaviour
         {
             RaiseThermobar(-1);
         }
+        else if (endTurnToLower == 0)
+        {
+            EndTurnRadi();
+        }
     }
 
     public void EndTurnRadi()
@@ -248,11 +310,17 @@ public class GameManager : MonoBehaviour
         {
             RaiseRadibar(-1);
         }
+        else if (endTurnToLower == 0)
+        {
+            EndTurnFinal();
+        }
     }
 
     public void EndTurnFinal()
     {
+        
         waitingForEndTurnAnim = false;
+        playerController.ResetActionNum();
         playerController.SetWaitingForAnim(false);
     }
 }

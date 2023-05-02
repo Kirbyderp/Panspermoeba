@@ -12,7 +12,8 @@ public class PlayerController : MonoBehaviour
     private bool waitingForAnim = false;
     private bool inInfoPage = false;
     private GameManager gameManager;
-    private bool[] selectedButtons = {false, false, false, false, false};
+    private bool[] selectedButtons = {false, false, false, false, false, false, false};
+    private int actionNum = 1;
 
     // Start is called before the first frame update
     void Start()
@@ -31,46 +32,11 @@ public class PlayerController : MonoBehaviour
         HandleButtonSelections();
         if (Input.GetKeyDown(KeyCode.Mouse0) && !waitingForAnim)
         {
-            int index = GetButtonSelected();
-            if (index != -1 && !inInfoPage)
-            {
-                if (index == 0 && ResourceManager.CanRaiseTemp() && gameManager.CanRaiseTemp(1))
-                {
-                    waitingForAnim = true;
-                    ResourceManager.RaiseTemp();
-                    gameManager.UpdateHandDisplay();
-                    gameManager.RaiseThermobar(1);
-                }
-                else if (index == 1 && ResourceManager.CanRaiseGene() && gameManager.CanRaiseGene(1))
-                {
-                    waitingForAnim = true;
-                    ResourceManager.RaiseGene();
-                    gameManager.UpdateHandDisplay();
-                    gameManager.RaiseRadibar(1);
-                }
-                else if (index == 2)
-                {
-                    ResourceManager.Scavenge(BoardManager.BOARDS[board.GetBoardState(), curSpace].GetScavAmt(), curSpace);
-                    gameManager.UpdateHandDisplay();
-                }
-                else if (index == 3)
-                {
-                    inInfoPage = true;
-                    gameManager.ShowInfoScreen();
-                }
-                else if (index == 4)
-                {
-                    waitingForAnim = true;
-                    gameManager.EndTurnBoard();
-                }
-            }
-            else if (index == 3 && inInfoPage)
-            {
-                gameManager.HideInfoScreen();
-                inInfoPage = false;
-            }
+            PerformAction(GetButtonSelected());
         }
+        
 
+        //DEV TOOLS
         if (!waitingForAnim && !inInfoPage)
         {
             if (Input.GetKeyDown(KeyCode.H))
@@ -78,14 +44,14 @@ public class PlayerController : MonoBehaviour
                 ResourceManager.Scavenge(BoardManager.BOARDS[board.GetBoardState(), curSpace].GetScavAmt(), curSpace);
                 gameManager.UpdateHandDisplay();
             }
-            else if (Input.GetKeyDown(KeyCode.T) && ResourceManager.CanRaiseTemp() && gameManager.CanRaiseTemp(1))
+            else if (Input.GetKeyDown(KeyCode.T) && ResourceManager.CanRaiseTemp(0) && gameManager.CanRaiseTemp(1))
             {
                 waitingForAnim = true;
                 ResourceManager.RaiseTemp();
                 gameManager.UpdateHandDisplay();
                 gameManager.RaiseThermobar(1);
             }
-            else if (Input.GetKeyDown(KeyCode.G) && ResourceManager.CanRaiseGene() && gameManager.CanRaiseGene(1))
+            else if (Input.GetKeyDown(KeyCode.G) && ResourceManager.CanRaiseGene(0) && gameManager.CanRaiseGene(1))
             {
                 waitingForAnim = true;
                 ResourceManager.RaiseGene();
@@ -130,6 +96,12 @@ public class PlayerController : MonoBehaviour
         curYPos = yIn;
     }
 
+    public void ResetActionNum()
+    {
+        Debug.Log("Reset");
+        actionNum = 1;
+    }
+
     private bool CanMove(int dir, int[] allowedDirs)
     {
         
@@ -158,7 +130,9 @@ public class PlayerController : MonoBehaviour
 
     private void LookForMoveInput()
     {
-        if (board.GetBoardState() % 2 == 1 && !waitingForAnim && !inInfoPage)
+        if (board.GetBoardState() % 2 == 1 && !waitingForAnim && !inInfoPage &&
+            (actionNum < 5 || (actionNum == 5 && ResourceManager.HasSugar(1))
+                             || (actionNum == 6 && ResourceManager.HasSugar(2))))
         {
             if (Input.GetKey(KeyCode.D))
             {
@@ -172,6 +146,18 @@ public class PlayerController : MonoBehaviour
                                board.transform.position.x;
                     nextYPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetYPos() +
                                board.transform.position.y;
+                    if (actionNum == 5)
+                    {
+                        ResourceManager.RemoveSugar();
+                        gameManager.UpdateHandDisplay();
+                    }
+                    else if (actionNum == 6)
+                    {
+                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveSugar();
+                        gameManager.UpdateHandDisplay();
+                    }
+                    actionNum++;
                     InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
@@ -187,6 +173,18 @@ public class PlayerController : MonoBehaviour
                                board.transform.position.x;
                     nextYPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetYPos() +
                                board.transform.position.y;
+                    if (actionNum == 5)
+                    {
+                        ResourceManager.RemoveSugar();
+                        gameManager.UpdateHandDisplay();
+                    }
+                    else if (actionNum == 6)
+                    {
+                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveSugar();
+                        gameManager.UpdateHandDisplay();
+                    }
+                    actionNum++;
                     InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
@@ -202,6 +200,18 @@ public class PlayerController : MonoBehaviour
                                board.transform.position.x;
                     nextYPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetYPos() +
                                board.transform.position.y;
+                    if (actionNum == 5)
+                    {
+                        ResourceManager.RemoveSugar();
+                        gameManager.UpdateHandDisplay();
+                    }
+                    else if (actionNum == 6)
+                    {
+                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveSugar();
+                        gameManager.UpdateHandDisplay();
+                    }
+                    actionNum++;
                     InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
@@ -217,11 +227,25 @@ public class PlayerController : MonoBehaviour
                                board.transform.position.x;
                     nextYPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetYPos() +
                                board.transform.position.y;
+                    if (actionNum == 5)
+                    {
+                        ResourceManager.RemoveSugar();
+                        gameManager.UpdateHandDisplay();
+                    }
+                    else if (actionNum == 6)
+                    {
+                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveSugar();
+                        gameManager.UpdateHandDisplay();
+                    }
+                    actionNum++;
                     InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
         }
-        else if (board.GetBoardState() % 2 == 0 && !waitingForAnim && !inInfoPage)
+        else if (board.GetBoardState() % 2 == 0 && !waitingForAnim && !inInfoPage &&
+                 (actionNum < 5 || (actionNum == 5 && ResourceManager.HasSugar(1))
+                                  || (actionNum == 6 && ResourceManager.HasSugar(2))))
         {
             if (Input.GetKey(KeyCode.D) && Input.GetKey(KeyCode.W))
             {
@@ -235,6 +259,18 @@ public class PlayerController : MonoBehaviour
                                board.transform.position.x;
                     nextYPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetYPos() +
                                board.transform.position.y;
+                    if (actionNum == 5)
+                    {
+                        ResourceManager.RemoveSugar();
+                        gameManager.UpdateHandDisplay();
+                    }
+                    else if (actionNum == 6)
+                    {
+                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveSugar();
+                        gameManager.UpdateHandDisplay();
+                    }
+                    actionNum++;
                     InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
@@ -250,6 +286,18 @@ public class PlayerController : MonoBehaviour
                                board.transform.position.x;
                     nextYPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetYPos() +
                                board.transform.position.y;
+                    if (actionNum == 5)
+                    {
+                        ResourceManager.RemoveSugar();
+                        gameManager.UpdateHandDisplay();
+                    }
+                    else if (actionNum == 6)
+                    {
+                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveSugar();
+                        gameManager.UpdateHandDisplay();
+                    }
+                    actionNum++;
                     InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
@@ -265,6 +313,18 @@ public class PlayerController : MonoBehaviour
                                board.transform.position.x;
                     nextYPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetYPos() +
                                board.transform.position.y;
+                    if (actionNum == 5)
+                    {
+                        ResourceManager.RemoveSugar();
+                        gameManager.UpdateHandDisplay();
+                    }
+                    else if (actionNum == 6)
+                    {
+                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveSugar();
+                        gameManager.UpdateHandDisplay();
+                    }
+                    actionNum++;
                     InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
@@ -280,6 +340,18 @@ public class PlayerController : MonoBehaviour
                                board.transform.position.x;
                     nextYPos = BoardManager.BOARDS[board.GetBoardState(), spaceID].GetYPos() +
                                board.transform.position.y;
+                    if (actionNum == 5)
+                    {
+                        ResourceManager.RemoveSugar();
+                        gameManager.UpdateHandDisplay();
+                    }
+                    else if (actionNum == 6)
+                    {
+                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveSugar();
+                        gameManager.UpdateHandDisplay();
+                    }
+                    actionNum++;
                     InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
@@ -306,7 +378,7 @@ public class PlayerController : MonoBehaviour
     private void HandleButtonSelections()
     {
         Vector3 mousePos = Input.mousePosition;
-
+        
         if (mousePos.x > 1153 && mousePos.x < 1343 && mousePos.y > 275 && mousePos.y < 465)
         {
             gameManager.SelectButton(0);
@@ -361,23 +433,45 @@ public class PlayerController : MonoBehaviour
             gameManager.DeselectButton(4);
             selectedButtons[4] = false;
         }
+
+        if (mousePos.x > 1391 && mousePos.x < 1579 && mousePos.y > 39 && mousePos.y < 226 && inInfoPage)
+        {
+            gameManager.SelectInfoButton(0);
+            selectedButtons[5] = true;
+        }
+        else if (selectedButtons[5])
+        {
+            gameManager.DeselectInfoButton(0);
+            selectedButtons[5] = false;
+        }
+
+        if (mousePos.x > 1625 && mousePos.x < 1815 && mousePos.y > 39 && mousePos.y < 226 && inInfoPage)
+        {
+            gameManager.SelectInfoButton(1);
+            selectedButtons[6] = true;
+        }
+        else if (selectedButtons[6])
+        {
+            gameManager.DeselectInfoButton(1);
+            selectedButtons[6] = false;
+        }
     }
 
     private int GetButtonSelected()
     {
         Vector3 mousePos = Input.mousePosition;
-
-        if (mousePos.x > 1153 && mousePos.x < 1343 && mousePos.y > 275 && mousePos.y < 465)
+        
+        if (mousePos.x > 1153 && mousePos.x < 1343 && mousePos.y > 275 && mousePos.y < 465 && !inInfoPage)
         {
             return 0;
         }
 
-        if (mousePos.x > 1391 && mousePos.x < 1579 && mousePos.y > 275 && mousePos.y < 465)
+        if (mousePos.x > 1391 && mousePos.x < 1579 && mousePos.y > 275 && mousePos.y < 465 && !inInfoPage)
         {
             return 1;
         }
 
-        if (mousePos.x > 915 && mousePos.x < 1105 && mousePos.y > 39 && mousePos.y < 226)
+        if (mousePos.x > 915 && mousePos.x < 1105 && mousePos.y > 39 && mousePos.y < 226 && !inInfoPage)
         {
             return 2;
         }
@@ -387,11 +481,228 @@ public class PlayerController : MonoBehaviour
             return 3;
         }
 
-        if (mousePos.x > 1391 && mousePos.x < 1579 && mousePos.y > 39 && mousePos.y < 226)
+        if (mousePos.x > 1391 && mousePos.x < 1579 && mousePos.y > 39 && mousePos.y < 226 && !inInfoPage)
         {
             return 4;
         }
 
+        if (mousePos.x > 1391 && mousePos.x < 1579 && mousePos.y > 39 && mousePos.y < 226 && inInfoPage)
+        {
+            return 0;
+        }
+
+        if (mousePos.x > 1625 && mousePos.x < 1815 && mousePos.y > 39 && mousePos.y < 226 && inInfoPage)
+        {
+            return 1;
+        }
+
         return -1;
+    }
+
+    private void PerformAction(int index)
+    {
+        if (actionNum < 5)
+        {
+            if (index != -1 && !inInfoPage)
+            {
+                if (index == 0 && ResourceManager.CanRaiseTemp(0) && gameManager.CanRaiseTemp(1))
+                {
+                    waitingForAnim = true;
+                    ResourceManager.RaiseTemp();
+                    gameManager.UpdateHandDisplay();
+                    actionNum++;
+                    gameManager.RaiseThermobar(1);
+                }
+                else if (index == 1 && ResourceManager.CanRaiseGene(0) && gameManager.CanRaiseGene(1))
+                {
+                    waitingForAnim = true;
+                    ResourceManager.RaiseGene();
+                    gameManager.UpdateHandDisplay();
+                    actionNum++;
+                    gameManager.RaiseRadibar(1);
+                }
+                else if (index == 2)
+                {
+                    ResourceManager.Scavenge(BoardManager.BOARDS[board.GetBoardState(), curSpace].GetScavAmt(), curSpace);
+                    gameManager.UpdateHandDisplay();
+                    actionNum++;
+                }
+                else if (index == 3)
+                {
+                    inInfoPage = true;
+                    gameManager.ShowInfoScreen();
+                }
+                else if (index == 4)
+                {
+                    waitingForAnim = true;
+                    gameManager.EndTurnBoard();
+                }
+            }
+            else if (index != -1 && inInfoPage)
+            {
+                if (index == 3)
+                {
+                    gameManager.HideInfoScreen();
+                    inInfoPage = false;
+                }
+                else if (index == 0)
+                {
+                    gameManager.InfoButtonAction();
+                }
+                else if (index == 1)
+                {
+                    gameManager.InfoButtonAction();
+                }
+            }
+        }
+        else if (actionNum == 5)
+        {
+            if (index != -1 && !inInfoPage)
+            {
+                if (index == 0 && ResourceManager.CanRaiseTemp(1) && gameManager.CanRaiseTemp(1))
+                {
+                    waitingForAnim = true;
+                    ResourceManager.RaiseTemp();
+                    ResourceManager.RemoveSugar();
+                    gameManager.UpdateHandDisplay();
+                    actionNum++;
+                    gameManager.RaiseThermobar(1);
+                }
+                else if (index == 1 && ResourceManager.CanRaiseGene(1) && gameManager.CanRaiseGene(1))
+                {
+                    waitingForAnim = true;
+                    ResourceManager.RaiseGene();
+                    ResourceManager.RemoveSugar();
+                    gameManager.UpdateHandDisplay();
+                    actionNum++;
+                    gameManager.RaiseRadibar(1);
+                }
+                else if (index == 2 && ResourceManager.HasSugar(1))
+                {
+                    ResourceManager.Scavenge(BoardManager.BOARDS[board.GetBoardState(), curSpace].GetScavAmt(), curSpace);
+                    ResourceManager.RemoveSugar();
+                    gameManager.UpdateHandDisplay();
+                    actionNum++;
+                }
+                else if (index == 3)
+                {
+                    inInfoPage = true;
+                    gameManager.ShowInfoScreen();
+                }
+                else if (index == 4)
+                {
+                    waitingForAnim = true;
+                    gameManager.EndTurnBoard();
+                }
+            }
+            else if (index != -1 && inInfoPage)
+            {
+                if (index == 3)
+                {
+                    gameManager.HideInfoScreen();
+                    inInfoPage = false;
+                }
+                else if (index == 0)
+                {
+                    gameManager.InfoButtonAction();
+                }
+                else if (index == 1)
+                {
+                    gameManager.InfoButtonAction();
+                }
+            }
+        }
+        else if (actionNum == 6)
+        {
+            if (index != -1 && !inInfoPage)
+            {
+                if (index == 0 && ResourceManager.CanRaiseTemp(2) && gameManager.CanRaiseTemp(1))
+                {
+                    waitingForAnim = true;
+                    ResourceManager.RaiseTemp();
+                    ResourceManager.RemoveSugar();
+                    ResourceManager.RemoveSugar();
+                    gameManager.UpdateHandDisplay();
+                    actionNum++;
+                    gameManager.RaiseThermobar(1);
+                }
+                else if (index == 1 && ResourceManager.CanRaiseGene(2) && gameManager.CanRaiseGene(1))
+                {
+                    waitingForAnim = true;
+                    ResourceManager.RaiseGene();
+                    ResourceManager.RemoveSugar();
+                    ResourceManager.RemoveSugar();
+                    gameManager.UpdateHandDisplay();
+                    actionNum++;
+                    gameManager.RaiseRadibar(1);
+                }
+                else if (index == 2 && ResourceManager.HasSugar(2))
+                {
+                    ResourceManager.Scavenge(BoardManager.BOARDS[board.GetBoardState(), curSpace].GetScavAmt(), curSpace);
+                    ResourceManager.RemoveSugar();
+                    ResourceManager.RemoveSugar();
+                    gameManager.UpdateHandDisplay();
+                    actionNum++;
+                }
+                else if (index == 3)
+                {
+                    inInfoPage = true;
+                    gameManager.ShowInfoScreen();
+                }
+                else if (index == 4)
+                {
+                    waitingForAnim = true;
+                    gameManager.EndTurnBoard();
+                }
+            }
+            else if (index != -1 && inInfoPage)
+            {
+                if (index == 3)
+                {
+                    gameManager.HideInfoScreen();
+                    inInfoPage = false;
+                }
+                else if (index == 0)
+                {
+                    gameManager.InfoButtonAction();
+                }
+                else if (index == 1)
+                {
+                    gameManager.InfoButtonAction();
+                }
+            }
+        }
+        else
+        {
+            if (index != -1 && !inInfoPage)
+            {
+                if (index == 3)
+                {
+                    inInfoPage = true;
+                    gameManager.ShowInfoScreen();
+                }
+                else if (index == 4)
+                {
+                    waitingForAnim = true;
+                    gameManager.EndTurnBoard();
+                }
+            }
+            else if (index != -1 && inInfoPage)
+            {
+                if (index == 3)
+                {
+                    gameManager.HideInfoScreen();
+                    inInfoPage = false;
+                }
+                else if (index == 0)
+                {
+                    gameManager.InfoButtonAction();
+                }
+                else if (index == 1)
+                {
+                    gameManager.InfoButtonAction();
+                }
+            }
+        }
     }
 }
