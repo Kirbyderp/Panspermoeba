@@ -18,7 +18,7 @@ public class GameManager : MonoBehaviour
     private PlayerController playerController;
     private BoardManager boardManager;
 
-    private GameObject player;
+    private SpriteRenderer playerMicrobe;
     private GameObject scavAmtIndicatorToggle;
     private GameObject[,] scavAmtIndicators;
 
@@ -28,10 +28,14 @@ public class GameManager : MonoBehaviour
     private GameObject infoScreen, infoPage1, infoPage2;
     private GameObject[] infoButtonsDeselected = new GameObject[2],
                          infoButtonsSelected = new GameObject[2];
+    private readonly float[] trackerYPos = { 2.955f, 2.245f, 1.525f, .83f, .115f, -.59f, -1.3f, -2.02f };
+    private GameObject turnTracker, actionTracker;
     private int activePage = 1;
 
     bool waitingForEndTurnAnim = false;
     int endTurnToLower = 0, numLowered = 0;
+
+    int turnNumber = 1;
 
     // Start is called before the first frame update
     void Start()
@@ -47,7 +51,7 @@ public class GameManager : MonoBehaviour
         playerController = GameObject.Find("Player Microbe").GetComponent<PlayerController>();
         boardManager = GameObject.Find("Game Board").GetComponent<BoardManager>();
 
-        player = GameObject.Find("Player Microbe");
+        playerMicrobe = GameObject.Find("Player Microbe").GetComponent<SpriteRenderer>();
         scavAmtIndicatorToggle = GameObject.Find("ScavAmt Indicators");
         scavAmtIndicators = new GameObject[7, 4];
         for (int i = 0; i < 7; i++)
@@ -85,6 +89,8 @@ public class GameManager : MonoBehaviour
         
         infoButtonsSelected[0].SetActive(false);
         infoButtonsSelected[1].SetActive(false);
+        turnTracker = GameObject.Find("Turn Tracker");
+        actionTracker = GameObject.Find("Action Tracker");
         infoPage2.SetActive(false);
         infoScreen.SetActive(false);
     }
@@ -219,12 +225,22 @@ public class GameManager : MonoBehaviour
     public void SelectButton(int index)
     {
         actionButtonsSelected[index].SetActive(true);
+        if (index == 2)
+        {
+            playerMicrobe.enabled = false;
+            scavAmtIndicatorToggle.SetActive(true);
+        }
         actionButtonsDeselected[index].SetActive(false);
     }
 
     public void DeselectButton(int index)
     {
         actionButtonsDeselected[index].SetActive(true);
+        if (index == 2)
+        {
+            scavAmtIndicatorToggle.SetActive(false);
+            playerMicrobe.enabled = true;
+        }
         actionButtonsSelected[index].SetActive(false);
     }
 
@@ -243,6 +259,25 @@ public class GameManager : MonoBehaviour
     public void ShowInfoScreen()
     {
         infoScreen.SetActive(true);
+        if (activePage == 2)
+        {
+            turnTracker.transform.position = new Vector3(turnTracker.transform.position.x,
+                                                         trackerYPos[turnNumber - 1],
+                                                         turnTracker.transform.position.z);
+            int actionNum = playerController.GetActionNum();
+            if (actionNum <= 6)
+            {
+                actionTracker.transform.position = new Vector3(actionTracker.transform.position.x,
+                                                               trackerYPos[actionNum - 1],
+                                                               actionTracker.transform.position.z);
+            }
+            else
+            {
+                actionTracker.transform.position = new Vector3(turnTracker.transform.position.x,
+                                                               trackerYPos[7],
+                                                               turnTracker.transform.position.z);
+            }
+        }
     }
 
     public void HideInfoScreen()
@@ -257,6 +292,22 @@ public class GameManager : MonoBehaviour
             activePage = 2;
             infoPage1.SetActive(false);
             infoPage2.SetActive(true);
+            turnTracker.transform.position = new Vector3(turnTracker.transform.position.x,
+                                                         trackerYPos[turnNumber - 1],
+                                                         turnTracker.transform.position.z);
+            int actionNum = playerController.GetActionNum();
+            if (actionNum <= 6)
+            {
+                actionTracker.transform.position = new Vector3(actionTracker.transform.position.x,
+                                                               trackerYPos[actionNum - 1],
+                                                               actionTracker.transform.position.z);
+            }
+            else
+            {
+                actionTracker.transform.position = new Vector3(turnTracker.transform.position.x,
+                                                               trackerYPos[7],
+                                                               turnTracker.transform.position.z);
+            }
         }
         else
         {
@@ -318,7 +369,10 @@ public class GameManager : MonoBehaviour
 
     public void EndTurnFinal()
     {
-        
+        if (turnNumber < 7)
+        {
+            turnNumber++;
+        }
         waitingForEndTurnAnim = false;
         playerController.ResetActionNum();
         playerController.SetWaitingForAnim(false);

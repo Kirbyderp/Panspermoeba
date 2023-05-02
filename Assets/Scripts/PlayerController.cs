@@ -96,9 +96,13 @@ public class PlayerController : MonoBehaviour
         curYPos = yIn;
     }
 
+    public int GetActionNum()
+    {
+        return actionNum;
+    }
+
     public void ResetActionNum()
     {
-        Debug.Log("Reset");
         actionNum = 1;
     }
 
