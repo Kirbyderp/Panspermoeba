@@ -101,9 +101,9 @@ public class PlayerController : MonoBehaviour
         return actionNum;
     }
 
-    public void ResetActionNum()
+    public void SetActionNum(int actIn)
     {
-        actionNum = 1;
+        actionNum = actIn;
     }
 
     private bool CanMove(int dir, int[] allowedDirs)
@@ -539,7 +539,7 @@ public class PlayerController : MonoBehaviour
                 else if (index == 4)
                 {
                     waitingForAnim = true;
-                    gameManager.EndTurnBoard();
+                    gameManager.EndTurnInit();
                 }
             }
             else if (index != -1 && inInfoPage)
@@ -596,7 +596,7 @@ public class PlayerController : MonoBehaviour
                 else if (index == 4)
                 {
                     waitingForAnim = true;
-                    gameManager.EndTurnBoard();
+                    gameManager.EndTurnInit();
                 }
             }
             else if (index != -1 && inInfoPage)
@@ -656,7 +656,7 @@ public class PlayerController : MonoBehaviour
                 else if (index == 4)
                 {
                     waitingForAnim = true;
-                    gameManager.EndTurnBoard();
+                    gameManager.EndTurnInit();
                 }
             }
             else if (index != -1 && inInfoPage)
@@ -688,7 +688,7 @@ public class PlayerController : MonoBehaviour
                 else if (index == 4)
                 {
                     waitingForAnim = true;
-                    gameManager.EndTurnBoard();
+                    gameManager.EndTurnInit();
                 }
             }
             else if (index != -1 && inInfoPage)

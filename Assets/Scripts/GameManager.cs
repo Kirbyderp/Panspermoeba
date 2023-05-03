@@ -273,9 +273,9 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                actionTracker.transform.position = new Vector3(turnTracker.transform.position.x,
+                actionTracker.transform.position = new Vector3(actionTracker.transform.position.x,
                                                                trackerYPos[7],
-                                                               turnTracker.transform.position.z);
+                                                               actionTracker.transform.position.z);
             }
         }
     }
@@ -304,9 +304,9 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                actionTracker.transform.position = new Vector3(turnTracker.transform.position.x,
+                actionTracker.transform.position = new Vector3(actionTracker.transform.position.x,
                                                                trackerYPos[7],
-                                                               turnTracker.transform.position.z);
+                                                               actionTracker.transform.position.z);
             }
         }
         else
@@ -315,6 +315,29 @@ public class GameManager : MonoBehaviour
             infoPage2.SetActive(false);
             infoPage1.SetActive(true);
         }
+    }
+
+    public void EndTurnInit()
+    {
+        if (thermoLevel > 3 && ResourceManager.HasSugar(1))
+        {
+            ResourceManager.RemoveSugar();
+        }
+        else
+        {
+            //Game Over
+        }
+
+        if (thermoLevel > 6 && ResourceManager.HasSugar(1))
+        {
+            ResourceManager.RemoveSugar();
+        }
+        else
+        {
+            //Game Over
+        }
+        EventManager.TriggerEvent(EventManager.PickEvent());
+        EndTurnBoard();
     }
 
     public void EndTurnBoard()
@@ -374,7 +397,23 @@ public class GameManager : MonoBehaviour
             turnNumber++;
         }
         waitingForEndTurnAnim = false;
-        playerController.ResetActionNum();
+        
+        if (thermoLevel < 4)
+        {
+            playerController.SetActionNum(4);
+        }
+        else if (thermoLevel < 7)
+        {
+            playerController.SetActionNum(3);
+        }
+        else if (thermoLevel < 7)
+        {
+            playerController.SetActionNum(2);
+        }
+        else
+        {
+            playerController.SetActionNum(1);
+        }
         playerController.SetWaitingForAnim(false);
     }
 }
