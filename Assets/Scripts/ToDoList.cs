@@ -1,5 +1,6 @@
 /* TO DO:
- * Fix temperature scale sprites (the bottoms of)
+ * Add a scene cover (copy of background to be put in front of everything).
+   Disable at the end of HideStuff().
  * 
  * Things done during work session:
  * 

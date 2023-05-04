@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Resource
 {
-    public static readonly string[] TYPES = { "Nothing", "Sugar", "Phosphate", "Base Pair" };
+    public static readonly string[] TYPES = { "Nothing", "Glucose", "Phosphate", "Base Pair" };
 
     private string type;
 

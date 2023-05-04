@@ -69,7 +69,7 @@ public class BoardManager : MonoBehaviour
 
     private int boardState = 0; //Int from 0-7
     private int[] boardAngles = {0, 45, 90, 135, 180, 225, 270, 315};
-    private int nextState = 1;
+    private int nextState;
     private float rotationSpeed = 60f;
 
     private GameObject player;
@@ -83,6 +83,7 @@ public class BoardManager : MonoBehaviour
         player = GameObject.Find("Player Microbe");
         playerController = player.GetComponent<PlayerController>();
         gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
+        nextState = Random.Range(0, 7);
     }
 
     // Update is called once per frame

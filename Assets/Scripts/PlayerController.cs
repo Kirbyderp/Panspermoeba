@@ -15,6 +15,31 @@ public class PlayerController : MonoBehaviour
     private bool[] selectedButtons = {false, false, false, false, false, false, false};
     private int actionNum = 1;
     private int controlScheme = 2; //0 == mouse only, 1 == keyboard only, 2 == both
+    
+    private GameObject kButtonSelector;
+    private int kSelectedButton = 0;
+    private Vector3[] kSelectorPositions = { new Vector3(2.66f, -1.586f, 2),
+                                             new Vector3(4.86f, -1.586f, 2),
+                                             new Vector3(0.46f, -3.786f, 2),
+                                             new Vector3(2.66f, -3.786f, 2),
+                                             new Vector3(4.86f, -3.786f, 2),
+                                             new Vector3(2.66f, -3.786f, -4.5f),
+                                             new Vector3(4.86f, -3.786f, -4.5f),
+                                             new Vector3(7.06f, -3.786f, -4.5f) };
+
+    //Controls
+    KeyCode back = KeyCode.Escape;
+
+    KeyCode lClick = KeyCode.Mouse0;
+
+    KeyCode moveU = KeyCode.W;
+    KeyCode moveL = KeyCode.A;
+    KeyCode moveD = KeyCode.S;
+    KeyCode moveR = KeyCode.D;
+
+    KeyCode selectL = KeyCode.H;
+    KeyCode selectR = KeyCode.J;
+    KeyCode useSelect = KeyCode.K;
 
     // Start is called before the first frame update
     void Start()
@@ -23,7 +48,11 @@ public class PlayerController : MonoBehaviour
         gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
         curXPos = board.transform.position.x;
         curYPos = board.transform.position.y;
-
+        kButtonSelector = GameObject.Find("Keyboard Action Selection");
+        if (controlScheme == 0)
+        {
+            kButtonSelector.SetActive(false);
+        }
     }
 
     // Update is called once per frame
@@ -32,12 +61,13 @@ public class PlayerController : MonoBehaviour
         if (controlScheme != 0)
         {
             LookForKeyboardMoveInput();
+            LookForKeyboardSelectInput();
         }
         
         if (controlScheme != 1)
         {
             HandleButtonMouseSelections();
-            if (Input.GetKeyDown(KeyCode.Mouse0) && !waitingForAnim)
+            if (Input.GetKeyDown(lClick) && !waitingForAnim)
             {
                 PerformAction(GetButtonMouseSelected());
             }
@@ -47,25 +77,27 @@ public class PlayerController : MonoBehaviour
         //DEV TOOLS
         if (!waitingForAnim && !inInfoPage)
         {
-            if (Input.GetKeyDown(KeyCode.H))
+            if (Input.GetKeyDown(KeyCode.B))
             {
-                //ResourceManager.Scavenge(BoardManager.BOARDS[board.GetBoardState(), curSpace].GetScavAmt(), curSpace);
-                ResourceManager.Scavenge(20, curSpace);
+                waitingForAnim = true;
+                int[] indices = ResourceManager.Scavenge(4, curSpace);
                 gameManager.UpdateHandDisplay();
+                StartCoroutine(gameManager.GainResourceDisplay(indices));
+                StartCoroutine(WaitForGainLossAnim());
             }
             else if (Input.GetKeyDown(KeyCode.T) && ResourceManager.CanRaiseTemp(0) && gameManager.CanRaiseTemp(1))
             {
                 waitingForAnim = true;
                 ResourceManager.RaiseTemp();
                 gameManager.UpdateHandDisplay();
-                gameManager.RaiseThermobar(1);
+                gameManager.RaiseThermobar(1, new int[] {0});
             }
             else if (Input.GetKeyDown(KeyCode.G) && ResourceManager.CanRaiseGene(0) && gameManager.CanRaiseGene(1))
             {
                 waitingForAnim = true;
                 ResourceManager.RaiseGene();
                 gameManager.UpdateHandDisplay();
-                gameManager.RaiseRadibar(1);
+                gameManager.RaiseRadibar(1, new int[] {0, 3, 4});
             }
         }
     }
@@ -155,13 +187,19 @@ public class PlayerController : MonoBehaviour
         return -1;
     }
 
+    IEnumerator WaitForGainLossAnim()
+    {
+        yield return new WaitForSeconds(.55f);
+        waitingForAnim = false;
+    }
+
     private void LookForKeyboardMoveInput()
     {
         if (board.GetBoardState() % 2 == 1 && !waitingForAnim && !inInfoPage &&
-            (actionNum < 5 || (actionNum == 5 && ResourceManager.HasSugar(1))
-                             || (actionNum == 6 && ResourceManager.HasSugar(2))))
+            (actionNum < 5 || (actionNum == 5 && ResourceManager.HasGlucose(1))
+                             || (actionNum == 6 && ResourceManager.HasGlucose(2))))
         {
-            if (Input.GetKey(KeyCode.D))
+            if (Input.GetKey(moveR))
             {
                 if (CanMove(0, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
@@ -175,20 +213,20 @@ public class PlayerController : MonoBehaviour
                                board.transform.position.y;
                     if (actionNum == 5)
                     {
-                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveGlucose();
                         gameManager.UpdateHandDisplay();
                     }
                     else if (actionNum == 6)
                     {
-                        ResourceManager.RemoveSugar();
-                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveGlucose();
+                        ResourceManager.RemoveGlucose();
                         gameManager.UpdateHandDisplay();
                     }
                     actionNum++;
                     InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
-            else if (Input.GetKey(KeyCode.W) && CanMove(2, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
+            else if (Input.GetKey(moveU) && CanMove(2, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
             {
                 if (CanMove(2, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
@@ -202,20 +240,20 @@ public class PlayerController : MonoBehaviour
                                board.transform.position.y;
                     if (actionNum == 5)
                     {
-                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveGlucose();
                         gameManager.UpdateHandDisplay();
                     }
                     else if (actionNum == 6)
                     {
-                        ResourceManager.RemoveSugar();
-                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveGlucose();
+                        ResourceManager.RemoveGlucose();
                         gameManager.UpdateHandDisplay();
                     }
                     actionNum++;
                     InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
-            else if (Input.GetKey(KeyCode.A) && CanMove(4, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
+            else if (Input.GetKey(moveL) && CanMove(4, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
             {
                 if (CanMove(4, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
@@ -229,20 +267,20 @@ public class PlayerController : MonoBehaviour
                                board.transform.position.y;
                     if (actionNum == 5)
                     {
-                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveGlucose();
                         gameManager.UpdateHandDisplay();
                     }
                     else if (actionNum == 6)
                     {
-                        ResourceManager.RemoveSugar();
-                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveGlucose();
+                        ResourceManager.RemoveGlucose();
                         gameManager.UpdateHandDisplay();
                     }
                     actionNum++;
                     InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
-            else if (Input.GetKey(KeyCode.S) && CanMove(6, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
+            else if (Input.GetKey(moveD) && CanMove(6, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
             {
                 if (CanMove(6, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
@@ -256,13 +294,13 @@ public class PlayerController : MonoBehaviour
                                board.transform.position.y;
                     if (actionNum == 5)
                     {
-                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveGlucose();
                         gameManager.UpdateHandDisplay();
                     }
                     else if (actionNum == 6)
                     {
-                        ResourceManager.RemoveSugar();
-                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveGlucose();
+                        ResourceManager.RemoveGlucose();
                         gameManager.UpdateHandDisplay();
                     }
                     actionNum++;
@@ -271,10 +309,10 @@ public class PlayerController : MonoBehaviour
             }
         }
         else if (board.GetBoardState() % 2 == 0 && !waitingForAnim && !inInfoPage &&
-                 (actionNum < 5 || (actionNum == 5 && ResourceManager.HasSugar(1))
-                                  || (actionNum == 6 && ResourceManager.HasSugar(2))))
+                 (actionNum < 5 || (actionNum == 5 && ResourceManager.HasGlucose(1))
+                                  || (actionNum == 6 && ResourceManager.HasGlucose(2))))
         {
-            if (Input.GetKey(KeyCode.D) && Input.GetKey(KeyCode.W))
+            if (Input.GetKey(moveR) && Input.GetKey(moveU))
             {
                 if (CanMove(1, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
@@ -288,20 +326,20 @@ public class PlayerController : MonoBehaviour
                                board.transform.position.y;
                     if (actionNum == 5)
                     {
-                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveGlucose();
                         gameManager.UpdateHandDisplay();
                     }
                     else if (actionNum == 6)
                     {
-                        ResourceManager.RemoveSugar();
-                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveGlucose();
+                        ResourceManager.RemoveGlucose();
                         gameManager.UpdateHandDisplay();
                     }
                     actionNum++;
                     InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
-            else if (Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.A))
+            else if (Input.GetKey(moveU) && Input.GetKey(moveL))
             {
                 if (CanMove(3, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
@@ -315,20 +353,20 @@ public class PlayerController : MonoBehaviour
                                board.transform.position.y;
                     if (actionNum == 5)
                     {
-                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveGlucose();
                         gameManager.UpdateHandDisplay();
                     }
                     else if (actionNum == 6)
                     {
-                        ResourceManager.RemoveSugar();
-                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveGlucose();
+                        ResourceManager.RemoveGlucose();
                         gameManager.UpdateHandDisplay();
                     }
                     actionNum++;
                     InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
-            else if (Input.GetKey(KeyCode.A) && Input.GetKey(KeyCode.S))
+            else if (Input.GetKey(moveL) && Input.GetKey(moveD))
             {
                 if (CanMove(5, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
@@ -342,20 +380,20 @@ public class PlayerController : MonoBehaviour
                                board.transform.position.y;
                     if (actionNum == 5)
                     {
-                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveGlucose();
                         gameManager.UpdateHandDisplay();
                     }
                     else if (actionNum == 6)
                     {
-                        ResourceManager.RemoveSugar();
-                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveGlucose();
+                        ResourceManager.RemoveGlucose();
                         gameManager.UpdateHandDisplay();
                     }
                     actionNum++;
                     InvokeRepeating("Move", 0, 1 / 60f);
                 }
             }
-            else if (Input.GetKey(KeyCode.S) && Input.GetKey(KeyCode.D))
+            else if (Input.GetKey(moveD) && Input.GetKey(moveR))
             {
                 if (CanMove(7, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
@@ -369,17 +407,124 @@ public class PlayerController : MonoBehaviour
                                board.transform.position.y;
                     if (actionNum == 5)
                     {
-                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveGlucose();
                         gameManager.UpdateHandDisplay();
                     }
                     else if (actionNum == 6)
                     {
-                        ResourceManager.RemoveSugar();
-                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveGlucose();
+                        ResourceManager.RemoveGlucose();
                         gameManager.UpdateHandDisplay();
                     }
                     actionNum++;
                     InvokeRepeating("Move", 0, 1 / 60f);
+                }
+            }
+        }
+    }
+
+    private void LookForKeyboardSelectInput()
+    {
+        if (!inInfoPage)
+        {
+            if (Input.GetKeyDown(selectL))
+            {
+                gameManager.DeselectButton(kSelectedButton);
+                kSelectedButton--;
+                if (kSelectedButton < 0)
+                {
+                    kSelectedButton = 4;
+                }
+                kButtonSelector.transform.position = kSelectorPositions[kSelectedButton];
+                gameManager.SelectButton(kSelectedButton);
+            }
+            else if (Input.GetKeyDown(selectR))
+            {
+                gameManager.DeselectButton(kSelectedButton);
+                kSelectedButton++;
+                if (kSelectedButton > 4)
+                {
+                    kSelectedButton = 0;
+                }
+                kButtonSelector.transform.position = kSelectorPositions[kSelectedButton];
+                gameManager.SelectButton(kSelectedButton);
+            }
+            else if (Input.GetKeyDown(useSelect))
+            {
+                PerformAction(kSelectedButton);
+                if (kSelectedButton == 3)
+                {
+                    kSelectedButton = 5;
+                    kButtonSelector.transform.position = kSelectorPositions[kSelectedButton];
+                }
+            }
+        }
+        else
+        {
+            if (Input.GetKeyDown(selectL))
+            {
+                if (kSelectedButton == 5)
+                {
+                    gameManager.DeselectButton(3);
+                }
+                else
+                {
+                    gameManager.DeselectInfoButton(kSelectedButton - 6);
+                }
+                kSelectedButton--;
+                if (kSelectedButton < 5)
+                {
+                    kSelectedButton = 7;
+                }
+                kButtonSelector.transform.position = kSelectorPositions[kSelectedButton];
+                if (kSelectedButton == 5)
+                {
+                    gameManager.SelectButton(3);
+                }
+                else
+                {
+                    gameManager.SelectInfoButton(kSelectedButton - 6);
+                }
+            }
+            else if (Input.GetKeyDown(selectR))
+            {
+                if (kSelectedButton == 5)
+                {
+                    gameManager.DeselectButton(3);
+                }
+                else
+                {
+                    gameManager.DeselectInfoButton(kSelectedButton - 6);
+                }
+                kSelectedButton++;
+                if (kSelectedButton > 7)
+                {
+                    kSelectedButton = 5;
+                }
+                kButtonSelector.transform.position = kSelectorPositions[kSelectedButton];
+                if (kSelectedButton == 5)
+                {
+                    gameManager.SelectButton(3);
+                }
+                else
+                {
+                    gameManager.SelectInfoButton(kSelectedButton - 6);
+                }
+            }
+            else if (Input.GetKeyDown(useSelect))
+            {
+                if (kSelectedButton == 5)
+                {
+                    PerformAction(3);
+                }
+                else
+                {
+                    PerformAction(kSelectedButton - 6);
+                }
+                if (kSelectedButton == 5)
+                {
+                    kSelectedButton = 3;
+                    kButtonSelector.transform.position = kSelectorPositions[kSelectedButton];
                 }
             }
         }
@@ -405,82 +550,103 @@ public class PlayerController : MonoBehaviour
     private void HandleButtonMouseSelections()
     {
         Vector3 mousePos = Input.mousePosition;
-        Debug.Log(mousePos);
-        if (mousePos.x > 1153 && mousePos.x < 1343 && mousePos.y > 275 && mousePos.y < 465)
+        
+        if (kSelectedButton != 0 || controlScheme == 0)
         {
-            gameManager.SelectButton(0);
-            selectedButtons[0] = true;
-        }
-        else if (selectedButtons[0])
-        {
-            gameManager.DeselectButton(0);
-            selectedButtons[0] = false;
-        }
-
-        if (mousePos.x > 1391 && mousePos.x < 1579 && mousePos.y > 275 && mousePos.y < 465)
-        {
-            gameManager.SelectButton(1);
-            selectedButtons[1] = true;
-        }
-        else if (selectedButtons[1])
-        {
-            gameManager.DeselectButton(1);
-            selectedButtons[1] = false;
+            if (mousePos.x > 1153 && mousePos.x < 1343 && mousePos.y > 275 && mousePos.y < 465)
+            {
+                gameManager.SelectButton(0);
+                selectedButtons[0] = true;
+            }
+            else if (selectedButtons[0])
+            {
+                gameManager.DeselectButton(0);
+                selectedButtons[0] = false;
+            }
         }
 
-        if (mousePos.x > 915 && mousePos.x < 1105 && mousePos.y > 39 && mousePos.y < 226)
+        if (kSelectedButton != 1 || controlScheme == 0)
         {
-            gameManager.SelectButton(2);
-            selectedButtons[2] = true;
-        }
-        else if (selectedButtons[2])
-        {
-            gameManager.DeselectButton(2);
-            selectedButtons[2] = false;
-        }
-
-        if (mousePos.x > 1153 && mousePos.x < 1343 && mousePos.y > 39 && mousePos.y < 226)
-        {
-            gameManager.SelectButton(3);
-            selectedButtons[3] = true;
-        }
-        else if (selectedButtons[3])
-        {
-            gameManager.DeselectButton(3);
-            selectedButtons[3] = false;
+            if (mousePos.x > 1391 && mousePos.x < 1579 && mousePos.y > 275 && mousePos.y < 465)
+            {
+                gameManager.SelectButton(1);
+                selectedButtons[1] = true;
+            }
+            else if (selectedButtons[1])
+            {
+                gameManager.DeselectButton(1);
+                selectedButtons[1] = false;
+            }
         }
 
-        if (mousePos.x > 1391 && mousePos.x < 1579 && mousePos.y > 39 && mousePos.y < 226)
+        if (kSelectedButton != 2 || controlScheme == 0)
         {
-            gameManager.SelectButton(4);
-            selectedButtons[4] = true;
-        }
-        else if (selectedButtons[4])
-        {
-            gameManager.DeselectButton(4);
-            selectedButtons[4] = false;
-        }
-
-        if (mousePos.x > 1391 && mousePos.x < 1579 && mousePos.y > 39 && mousePos.y < 226 && inInfoPage)
-        {
-            gameManager.SelectInfoButton(0);
-            selectedButtons[5] = true;
-        }
-        else if (selectedButtons[5])
-        {
-            gameManager.DeselectInfoButton(0);
-            selectedButtons[5] = false;
+            if (mousePos.x > 915 && mousePos.x < 1105 && mousePos.y > 39 && mousePos.y < 226)
+            {
+                gameManager.SelectButton(2);
+                selectedButtons[2] = true;
+            }
+            else if (selectedButtons[2])
+            {
+                gameManager.DeselectButton(2);
+                selectedButtons[2] = false;
+            }
         }
 
-        if (mousePos.x > 1625 && mousePos.x < 1815 && mousePos.y > 39 && mousePos.y < 226 && inInfoPage)
+        if (kSelectedButton != 3 || controlScheme == 0)
         {
-            gameManager.SelectInfoButton(1);
-            selectedButtons[6] = true;
+            if (mousePos.x > 1153 && mousePos.x < 1343 && mousePos.y > 39 && mousePos.y < 226)
+            {
+                gameManager.SelectButton(3);
+                selectedButtons[3] = true;
+            }
+            else if (selectedButtons[3])
+            {
+                gameManager.DeselectButton(3);
+                selectedButtons[3] = false;
+            }
         }
-        else if (selectedButtons[6])
+
+        if (kSelectedButton != 4 || controlScheme == 0)
         {
-            gameManager.DeselectInfoButton(1);
-            selectedButtons[6] = false;
+            if (mousePos.x > 1391 && mousePos.x < 1579 && mousePos.y > 39 && mousePos.y < 226)
+            {
+                gameManager.SelectButton(4);
+                selectedButtons[4] = true;
+            }
+            else if (selectedButtons[4])
+            {
+                gameManager.DeselectButton(4);
+                selectedButtons[4] = false;
+            }
+        }
+
+        if (kSelectedButton != 6 || controlScheme == 0)
+        {
+            if (mousePos.x > 1391 && mousePos.x < 1579 && mousePos.y > 39 && mousePos.y < 226 && inInfoPage)
+            {
+                gameManager.SelectInfoButton(0);
+                selectedButtons[5] = true;
+            }
+            else if (selectedButtons[5])
+            {
+                gameManager.DeselectInfoButton(0);
+                selectedButtons[5] = false;
+            }
+        }
+
+        if (kSelectedButton != 7 || controlScheme == 0)
+        {
+            if (mousePos.x > 1625 && mousePos.x < 1815 && mousePos.y > 39 && mousePos.y < 226 && inInfoPage)
+            {
+                gameManager.SelectInfoButton(1);
+                selectedButtons[6] = true;
+            }
+            else if (selectedButtons[6])
+            {
+                gameManager.DeselectInfoButton(1);
+                selectedButtons[6] = false;
+            }
         }
     }
 
@@ -873,7 +1039,7 @@ public class PlayerController : MonoBehaviour
                     ResourceManager.RaiseTemp();
                     gameManager.UpdateHandDisplay();
                     actionNum++;
-                    gameManager.RaiseThermobar(1);
+                    gameManager.RaiseThermobar(1, new int[] {0});
                 }
                 else if (index == 1 && ResourceManager.CanRaiseGene(0) && gameManager.CanRaiseGene(1))
                 {
@@ -881,12 +1047,16 @@ public class PlayerController : MonoBehaviour
                     ResourceManager.RaiseGene();
                     gameManager.UpdateHandDisplay();
                     actionNum++;
-                    gameManager.RaiseRadibar(1);
+                    gameManager.RaiseRadibar(1, new int[] { 0, 3, 4 });
                 }
                 else if (index == 2)
                 {
-                    ResourceManager.Scavenge(BoardManager.BOARDS[board.GetBoardState(), curSpace].GetScavAmt(), curSpace);
+                    waitingForAnim = true;
+                    int[] indices = ResourceManager.Scavenge(BoardManager.BOARDS[board.GetBoardState(),
+                                                             curSpace].GetScavAmt(), curSpace);
                     gameManager.UpdateHandDisplay();
+                    StartCoroutine(gameManager.GainResourceDisplay(indices));
+                    StartCoroutine(WaitForGainLossAnim());
                     actionNum++;
                 }
                 else if (index == 3)
@@ -939,25 +1109,34 @@ public class PlayerController : MonoBehaviour
                 {
                     waitingForAnim = true;
                     ResourceManager.RaiseTemp();
-                    ResourceManager.RemoveSugar();
+                    ResourceManager.RemoveGlucose();
                     gameManager.UpdateHandDisplay();
                     actionNum++;
-                    gameManager.RaiseThermobar(1);
+                    gameManager.RaiseThermobar(1, new int[] { 0, 1 });
                 }
                 else if (index == 1 && ResourceManager.CanRaiseGene(1) && gameManager.CanRaiseGene(1))
                 {
                     waitingForAnim = true;
                     ResourceManager.RaiseGene();
-                    ResourceManager.RemoveSugar();
+                    ResourceManager.RemoveGlucose();
                     gameManager.UpdateHandDisplay();
                     actionNum++;
-                    gameManager.RaiseRadibar(1);
+                    gameManager.RaiseRadibar(1, new int[] { 0, 1, 3, 4 });
                 }
-                else if (index == 2 && ResourceManager.HasSugar(1))
+                else if (index == 2 && ResourceManager.HasGlucose(1))
                 {
-                    ResourceManager.Scavenge(BoardManager.BOARDS[board.GetBoardState(), curSpace].GetScavAmt(), curSpace);
-                    ResourceManager.RemoveSugar();
+                    waitingForAnim = true;
+                    int[] indices = ResourceManager.Scavenge(BoardManager.BOARDS[board.GetBoardState(),
+                                                             curSpace].GetScavAmt(), curSpace);
+                    ResourceManager.RemoveGlucose();
                     gameManager.UpdateHandDisplay();
+                    int[][] lgIndices = UpdateIndices(indices, 1);
+                    if (lgIndices[0].Length > 0)
+                    {
+                        StartCoroutine(gameManager.LoseResourceDisplay(lgIndices[0]));
+                    }
+                    StartCoroutine(gameManager.GainResourceDisplay(lgIndices[1]));
+                    StartCoroutine(WaitForGainLossAnim());
                     actionNum++;
                 }
                 else if (index == 3)
@@ -980,7 +1159,7 @@ public class PlayerController : MonoBehaviour
                                    board.transform.position.x;
                         nextYPos = BoardManager.BOARDS[board.GetBoardState(), index % 10].GetYPos() +
                                    board.transform.position.y;
-                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveGlucose();
                         gameManager.UpdateHandDisplay();
                         actionNum++;
                         InvokeRepeating("Move", 0, 1 / 60f);
@@ -1012,28 +1191,37 @@ public class PlayerController : MonoBehaviour
                 {
                     waitingForAnim = true;
                     ResourceManager.RaiseTemp();
-                    ResourceManager.RemoveSugar();
-                    ResourceManager.RemoveSugar();
+                    ResourceManager.RemoveGlucose();
+                    ResourceManager.RemoveGlucose();
                     gameManager.UpdateHandDisplay();
                     actionNum++;
-                    gameManager.RaiseThermobar(1);
+                    gameManager.RaiseThermobar(1, new int[] { 0, 1, 2 });
                 }
                 else if (index == 1 && ResourceManager.CanRaiseGene(2) && gameManager.CanRaiseGene(1))
                 {
                     waitingForAnim = true;
                     ResourceManager.RaiseGene();
-                    ResourceManager.RemoveSugar();
-                    ResourceManager.RemoveSugar();
+                    ResourceManager.RemoveGlucose();
+                    ResourceManager.RemoveGlucose();
                     gameManager.UpdateHandDisplay();
                     actionNum++;
-                    gameManager.RaiseRadibar(1);
+                    gameManager.RaiseRadibar(1, new int[] { 0, 1, 2, 3, 4 });
                 }
-                else if (index == 2 && ResourceManager.HasSugar(2))
+                else if (index == 2 && ResourceManager.HasGlucose(2))
                 {
-                    ResourceManager.Scavenge(BoardManager.BOARDS[board.GetBoardState(), curSpace].GetScavAmt(), curSpace);
-                    ResourceManager.RemoveSugar();
-                    ResourceManager.RemoveSugar();
+                    waitingForAnim = true;
+                    int[] indices = ResourceManager.Scavenge(BoardManager.BOARDS[board.GetBoardState(),
+                                                             curSpace].GetScavAmt(), curSpace);
+                    ResourceManager.RemoveGlucose();
+                    ResourceManager.RemoveGlucose();
                     gameManager.UpdateHandDisplay();
+                    int[][] lgIndices = UpdateIndices(indices, 2);
+                    if (lgIndices[0].Length > 0)
+                    {
+                        StartCoroutine(gameManager.LoseResourceDisplay(lgIndices[0]));
+                    }
+                    StartCoroutine(gameManager.GainResourceDisplay(lgIndices[1]));
+                    StartCoroutine(WaitForGainLossAnim());
                     actionNum++;
                 }
                 else if (index == 3)
@@ -1056,8 +1244,8 @@ public class PlayerController : MonoBehaviour
                                    board.transform.position.x;
                         nextYPos = BoardManager.BOARDS[board.GetBoardState(), index % 10].GetYPos() +
                                    board.transform.position.y;
-                        ResourceManager.RemoveSugar();
-                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveGlucose();
+                        ResourceManager.RemoveGlucose();
                         gameManager.UpdateHandDisplay();
                         actionNum++;
                         InvokeRepeating("Move", 0, 1 / 60f);
@@ -1113,5 +1301,117 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
+    }
+
+    private int[][] UpdateIndices(int[] indices, int gLost)
+    {
+        int[] lIndices = new int[] { };
+        int[] gIndices = new int[] { };
+
+        if (gLost == 1)
+        {
+            int gIndex = -1;
+            for (int i = 0; i < indices.Length; i++)
+            {
+                if (indices[i] > gIndex && indices[i] < 4)
+                {
+                    gIndex = i;
+                }
+            }
+            
+            if (gIndex > -1)
+            {
+                gIndices = new int[indices.Length - 1];
+                for (int i = 0; i < indices.Length; i++)
+                {
+                    if (i < gIndex)
+                    {
+                        gIndices[i] = indices[i];
+                    }
+                    else if (i > gIndex)
+                    {
+                        gIndices[i - 1] = indices[i];
+                    }
+                }
+            }
+            else
+            {
+                lIndices = new int[] { 0 };
+                gIndices = indices;
+            }
+        }
+        else if (gLost == 2)
+        {
+            int gIndex1 = -1, gIndex2 = -1;
+            for (int i = 0; i < indices.Length; i++)
+            {
+                if (indices[i] > gIndex1 && indices[i] < 4)
+                {
+                    if (gIndex1 > gIndex2)
+                    {
+                        gIndex2 = gIndex1;
+                    }
+                    gIndex1 = i;
+                }
+            }
+
+            if (gIndex1 > -1 && gIndex2 > -1)
+            {
+                gIndices = new int[indices.Length - 2];
+                for (int i = 0; i < indices.Length; i++)
+                {
+                    if (i < gIndex1 && i < gIndex2)
+                    {
+                        gIndices[i] = indices[i];
+                    }
+                    else if (i < gIndex1 && i > gIndex2)
+                    {
+                        gIndices[i - 1] = indices[i];
+                    }
+                    else if (i > gIndex1)
+                    {
+                        gIndices[i - 2] = indices[i];
+                    }
+                }
+            }
+            else if (gIndex1 > -1)
+            {
+                lIndices = new int[] { 0 };
+                gIndices = new int[indices.Length - 1];
+                for (int i = 0; i < indices.Length; i++)
+                {
+                    if (i < gIndex1)
+                    {
+                        gIndices[i] = indices[i];
+                    }
+                    else if (i > gIndex1)
+                    {
+                        gIndices[i - 1] = indices[i];
+                    }
+                }
+            }
+            else
+            {
+                lIndices = new int[] { 0, 1 };
+                gIndices = indices;
+            }
+        }
+
+        for (int i = 0; i < indices.Length; i++)
+        {
+            Debug.Log(indices[i]);
+        }
+        Debug.Log("g");
+        for (int i = 0; i < gIndices.Length; i++)
+        {
+            Debug.Log(gIndices[i]);
+        }
+        Debug.Log("l");
+        for (int i = 0; i < lIndices.Length; i++)
+        {
+            Debug.Log(lIndices[i]);
+        }
+
+        return new int[][] { lIndices, gIndices };
     }
 }

@@ -5,6 +5,11 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     private TMPro.TextMeshProUGUI gText, pText, bText;
+    private GameObject[] rLossIndicators = new GameObject[5];
+    private GameObject[,] rGainIndicators = new GameObject[2,12];
+    private float[] gGainLossXPositions = { -4.6f, -4.4f};
+
+
     private GameObject thermobar, radibar;
     private readonly float[] thermoY = { -3.475f, -3.195f, -2.915f, -2.635f, -2.355f, -2.075f, -1.795f,
                                          -1.515f, -1.235f, -0.955f, -0.675f, -0.395f, -0.115f, 0 }, //.28 diff
@@ -32,10 +37,11 @@ public class GameManager : MonoBehaviour
     private GameObject turnTracker, actionTracker;
     private int activePage = 1;
 
-    bool waitingForEndTurnAnim = false;
+    bool waitingForEndTurnAnim1 = false, waitingForEndTurnAnim2 = false;
     int endTurnToLower = 0, numLowered = 0;
 
     int turnNumber = 1;
+    int controlScheme = 2; //0 == mouse only, 1 == keyboard only, 2 == both
 
     // Start is called before the first frame update
     void Start()
@@ -48,6 +54,37 @@ public class GameManager : MonoBehaviour
         bText = GameObject.Find("Base Pair Text").GetComponent<TMPro.TextMeshProUGUI>();
         ResourceManager.SetUpDeck();
 
+        rLossIndicators[0] = GameObject.Find("Lose Glucose 1");
+        rLossIndicators[1] = GameObject.Find("Lose Glucose 2");
+        rLossIndicators[2] = GameObject.Find("Lose Glucose 3");
+        rLossIndicators[3] = GameObject.Find("Lose Phosphate");
+        rLossIndicators[4] = GameObject.Find("Lose Base Pair");
+        for (int i = 0; i < rLossIndicators.Length; i++)
+        {
+            rLossIndicators[i].GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
+        }
+
+        for (int i = 0; i < 12; i++)
+        {
+            if (i < 4)
+            {
+                rGainIndicators[0, i] = GameObject.Find("Gain Glucose " + i % 4);
+                rGainIndicators[1, i] = GameObject.Find("Gain Glucose " + i % 4 + "V");
+            }
+            else if (i < 8)
+            {
+                rGainIndicators[0, i] = GameObject.Find("Gain Phosphate " + i % 4);
+                rGainIndicators[1, i] = GameObject.Find("Gain Phosphate " + i % 4 + "V");
+            }
+            else if (i < 12)
+            {
+                rGainIndicators[0, i] = GameObject.Find("Gain Base Pair " + i % 4);
+                rGainIndicators[1, i] = GameObject.Find("Gain Base Pair " + i % 4 + "V");
+            }
+            rGainIndicators[0,i].GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
+            rGainIndicators[1,i].GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
+        }
+
         playerController = GameObject.Find("Player Microbe").GetComponent<PlayerController>();
         boardManager = GameObject.Find("Game Board").GetComponent<BoardManager>();
 
@@ -58,10 +95,9 @@ public class GameManager : MonoBehaviour
         {
             for (int j = 0; j < 4; j++)
             {
-                scavAmtIndicators[i, j] = GameObject.Find("Circle Indicator" + i + j);
+                scavAmtIndicators[i, j] = GameObject.Find("Circle Indicator " + i + j);
             }
         }
-        scavAmtIndicatorToggle.SetActive(false);
 
         actionButtonsDeselected[0] = GameObject.Find("Raise Temp Button D");
         actionButtonsDeselected[1] = GameObject.Find("Raise Gene Button D");
@@ -74,10 +110,6 @@ public class GameManager : MonoBehaviour
         actionButtonsSelected[2] = GameObject.Find("Scavenge Button S");
         actionButtonsSelected[3] = GameObject.Find("Info Page Button S");
         actionButtonsSelected[4] = GameObject.Find("End Turn Button S");
-        foreach (GameObject aButton in actionButtonsSelected)
-        {
-            aButton.SetActive(false);
-        }
 
         infoScreen = GameObject.Find("Info Screen");
         infoPage1 = GameObject.Find("Info Page 1");
@@ -86,11 +118,29 @@ public class GameManager : MonoBehaviour
         infoButtonsDeselected[1] = GameObject.Find("Right Button D");
         infoButtonsSelected[0] = GameObject.Find("Left Button S");
         infoButtonsSelected[1] = GameObject.Find("Left Button S");
-        
-        infoButtonsSelected[0].SetActive(false);
-        infoButtonsSelected[1].SetActive(false);
         turnTracker = GameObject.Find("Turn Tracker");
         actionTracker = GameObject.Find("Action Tracker");
+
+        StartCoroutine(HideStuff());
+    }
+
+    IEnumerator HideStuff()
+    {
+        yield return new WaitForSeconds(.02f);
+        scavAmtIndicatorToggle.SetActive(false);
+
+        foreach (GameObject aButton in actionButtonsSelected)
+        {
+            aButton.SetActive(false);
+        }
+        if (controlScheme != 0)
+        {
+            actionButtonsSelected[0].SetActive(true);
+            actionButtonsDeselected[0].SetActive(false);
+        }
+
+        infoButtonsSelected[0].SetActive(false);
+        infoButtonsSelected[1].SetActive(false);
         infoPage2.SetActive(false);
         infoScreen.SetActive(false);
     }
@@ -131,9 +181,13 @@ public class GameManager : MonoBehaviour
         return (thermoLevel + numSteps) > 0 && (thermoLevel + numSteps) < 13;
     }
     
-    public void RaiseThermobar(int numSteps)
+    public void RaiseThermobar(int numSteps, int[] indices)
     {
         endLevel = thermoLevel + numSteps;
+        if (indices.Length != 0)
+        {
+            StartCoroutine(LoseResourceDisplay(indices));
+        }
         InvokeRepeating("ThermobarAnim", 0, 1/60f);
     }
 
@@ -155,7 +209,7 @@ public class GameManager : MonoBehaviour
                                                          thermobar.transform.localScale.z);
             thermoLevel = endLevel;
             CancelInvoke();
-            if (!waitingForEndTurnAnim)
+            if (!waitingForEndTurnAnim2)
             {
                 playerController.SetWaitingForAnim(false);
             }
@@ -164,7 +218,7 @@ public class GameManager : MonoBehaviour
                 numLowered++;
                 if (numLowered < endTurnToLower)
                 {
-                    RaiseThermobar(-1);
+                    RaiseThermobar(-1, new int[] { });
                 }
                 else
                 {
@@ -179,9 +233,13 @@ public class GameManager : MonoBehaviour
         return (radiLevel + numSteps) > 0 && (radiLevel + numSteps) < 11;
     }
 
-    public void RaiseRadibar(int numSteps)
+    public void RaiseRadibar(int numSteps, int[] indices)
     {
         endLevel = radiLevel + numSteps;
+        if (indices.Length != 0)
+        {
+            StartCoroutine(LoseResourceDisplay(indices));
+        }
         InvokeRepeating("RadibarAnim", 0, 1/60f);
     }
 
@@ -203,7 +261,7 @@ public class GameManager : MonoBehaviour
                                                        radibar.transform.localScale.z);
             radiLevel = endLevel;
             CancelInvoke();
-            if (!waitingForEndTurnAnim)
+            if (!waitingForEndTurnAnim2)
             {
                 playerController.SetWaitingForAnim(false);
             }
@@ -212,13 +270,22 @@ public class GameManager : MonoBehaviour
                 numLowered++;
                 if (numLowered < endTurnToLower)
                 {
-                    RaiseRadibar(-1);
+                    RaiseRadibar(-1, new int[] { });
                 }
                 else
                 {
                     EndTurnFinal();
                 }
             }
+        }
+    }
+
+    public void DecrementScavIndicatorAmt(int spaceID)
+    {
+        int scavAmt = BoardManager.BOARDS[0, spaceID].GetScavAmt();
+        if (scavAmt > 1)
+        {
+            scavAmtIndicators[spaceID, scavAmt - 1].SetActive(false);
         }
     }
 
@@ -317,32 +384,134 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public IEnumerator GainResourceDisplay(int[] indices)
+    {
+        for (int i = 0; i < indices.Length; i++)
+        {
+            if (indices[i] < 4 && gText.text.Length > 1)
+            {
+                rGainIndicators[0, indices[i]].transform.position = new Vector3(gGainLossXPositions[1],
+                                                                      rGainIndicators[0,i].transform.position.y,
+                                                                      rGainIndicators[0,i].transform.position.z);
+            }
+            else if (indices[i] < 4)
+            {
+                rGainIndicators[0, indices[i]].transform.position = new Vector3(gGainLossXPositions[0],
+                                                                      rGainIndicators[0,i].transform.position.y,
+                                                                      rGainIndicators[0,i].transform.position.z);
+            }
+            rGainIndicators[0, indices[i]].GetComponent<SpriteRenderer>().color = new Color(57f / 255,
+                                                                                            209f / 255,
+                                                                                            1f / 255);
+            rGainIndicators[1, indices[i]].GetComponent<SpriteRenderer>().color = new Color(57f / 255,
+                                                                                            209f / 255,
+                                                                                            1f / 255);
+        }
+        yield return new WaitForSeconds(.125f);
+        for (int i = 0; i < 26; i++)
+        {
+            for (int j = 0; j < indices.Length; j++)
+            {
+                rGainIndicators[0, indices[j]].GetComponent<SpriteRenderer>().color = new Color(57f / 255,
+                                                                                                209f / 255,
+                                                                                                1f / 255,
+                                                                                                1 - i / 26f);
+                rGainIndicators[1, indices[j]].GetComponent<SpriteRenderer>().color = new Color(57f / 255,
+                                                                                                209f / 255,
+                                                                                                1f / 255,
+                                                                                                1 - i / 26f);
+            }
+            yield return new WaitForSeconds(1 / 60f);
+        }
+        for (int j = 0; j < indices.Length; j++)
+        {
+            rGainIndicators[0, indices[j]].GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
+            rGainIndicators[1, indices[j]].GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
+        }
+        waitingForEndTurnAnim1 = false;
+    }
+
+    public IEnumerator LoseResourceDisplay(int[] indices)
+    {
+        for (int i = 0; i < indices.Length; i++)
+        {
+            if (indices[i] < 3 && gText.text.Length > 1)
+            {
+                rLossIndicators[indices[i]].transform.position = new Vector3(gGainLossXPositions[1],
+                                                                        rLossIndicators[i].transform.position.y,
+                                                                        rLossIndicators[i].transform.position.z);
+            }
+            else if (indices[i] < 3)
+            {
+                rLossIndicators[indices[i]].transform.position = new Vector3(gGainLossXPositions[0],
+                                                                        rLossIndicators[i].transform.position.y,
+                                                                        rLossIndicators[i].transform.position.z);
+            }
+            rLossIndicators[indices[i]].GetComponent<SpriteRenderer>().color = new Color(233f / 255, 0, 0);
+        }
+        yield return new WaitForSeconds(.125f);
+        for(int i = 0; i < 26; i++)
+        {
+            for (int j = 0; j < indices.Length; j++)
+            {
+                rLossIndicators[indices[j]].GetComponent<SpriteRenderer>().color = new Color(233f / 255, 0,
+                                                                                             0, 1 - i / 26f);
+            }
+            yield return new WaitForSeconds(1/60f);
+        }
+        for (int j = 0; j < indices.Length; j++)
+        {
+            rLossIndicators[indices[j]].GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
+        }
+        waitingForEndTurnAnim1 = false;
+    }
+
     public void EndTurnInit()
     {
-        if (thermoLevel > 3 && ResourceManager.HasSugar(1))
+        waitingForEndTurnAnim1 = true;
+        if (thermoLevel <= 3)
         {
-            ResourceManager.RemoveSugar();
+            waitingForEndTurnAnim1 = false;
         }
-        else
+        else if (thermoLevel > 6 && ResourceManager.HasGlucose(2))
+        {
+            ResourceManager.RemoveGlucose();
+            ResourceManager.RemoveGlucose();
+            UpdateHandDisplay();
+            StartCoroutine(LoseResourceDisplay(new int[] { 0, 1 }));
+        }
+        else if (thermoLevel > 3 && ResourceManager.HasGlucose(1))
+        {
+            ResourceManager.RemoveGlucose();
+            UpdateHandDisplay();
+            StartCoroutine(LoseResourceDisplay(new int[] { 0 }));
+        }
+        else if ((thermoLevel > 3 && !ResourceManager.HasGlucose(1)) ||
+                 (thermoLevel > 6 && !ResourceManager.HasGlucose(2)))
         {
             //Game Over
         }
 
-        if (thermoLevel > 6 && ResourceManager.HasSugar(1))
+        InvokeRepeating("WaitForEndTurnInit", 0, 1 / 60f);
+    }
+
+    private void WaitForEndTurnInit()
+    {
+        if (!waitingForEndTurnAnim1)
         {
-            ResourceManager.RemoveSugar();
+            CancelInvoke();
+            endTurnEvent();
         }
-        else
-        {
-            //Game Over
-        }
+    }
+
+    public void endTurnEvent()
+    {
         EventManager.TriggerEvent(EventManager.PickEvent());
         EndTurnBoard();
     }
 
     public void EndTurnBoard()
     {
-        waitingForEndTurnAnim = true;
         boardManager.RotateBoard();
     }
 
@@ -360,7 +529,7 @@ public class GameManager : MonoBehaviour
         }
         if (numLowered < endTurnToLower)
         {
-            RaiseThermobar(-1);
+            RaiseThermobar(-1, new int[] { });
         }
         else if (endTurnToLower == 0)
         {
@@ -382,7 +551,7 @@ public class GameManager : MonoBehaviour
         }
         if (numLowered < endTurnToLower)
         {
-            RaiseRadibar(-1);
+            RaiseRadibar(-1, new int[] { });
         }
         else if (endTurnToLower == 0)
         {
@@ -396,7 +565,7 @@ public class GameManager : MonoBehaviour
         {
             turnNumber++;
         }
-        waitingForEndTurnAnim = false;
+        waitingForEndTurnAnim2 = false;
         
         if (thermoLevel < 4)
         {
