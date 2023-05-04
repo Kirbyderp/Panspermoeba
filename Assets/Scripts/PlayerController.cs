@@ -14,6 +14,7 @@ public class PlayerController : MonoBehaviour
     private GameManager gameManager;
     private bool[] selectedButtons = {false, false, false, false, false, false, false};
     private int actionNum = 1;
+    private int controlScheme = 2; //0 == mouse only, 1 == keyboard only, 2 == both
 
     // Start is called before the first frame update
     void Start()
@@ -28,11 +29,18 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        LookForMoveInput();
-        HandleButtonSelections();
-        if (Input.GetKeyDown(KeyCode.Mouse0) && !waitingForAnim)
+        if (controlScheme != 0)
         {
-            PerformAction(GetButtonSelected());
+            LookForKeyboardMoveInput();
+        }
+        
+        if (controlScheme != 1)
+        {
+            HandleButtonMouseSelections();
+            if (Input.GetKeyDown(KeyCode.Mouse0) && !waitingForAnim)
+            {
+                PerformAction(GetButtonMouseSelected());
+            }
         }
         
 
@@ -41,7 +49,8 @@ public class PlayerController : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.H))
             {
-                ResourceManager.Scavenge(BoardManager.BOARDS[board.GetBoardState(), curSpace].GetScavAmt(), curSpace);
+                //ResourceManager.Scavenge(BoardManager.BOARDS[board.GetBoardState(), curSpace].GetScavAmt(), curSpace);
+                ResourceManager.Scavenge(20, curSpace);
                 gameManager.UpdateHandDisplay();
             }
             else if (Input.GetKeyDown(KeyCode.T) && ResourceManager.CanRaiseTemp(0) && gameManager.CanRaiseTemp(1))
@@ -119,6 +128,20 @@ public class PlayerController : MonoBehaviour
         return false;
     }
 
+    private bool CanMove(int spaceID)
+    {
+
+        int[] adjs = BoardManager.BOARDS[board.GetBoardState(), curSpace].GetAdjs();
+        for (int i = 0; i < adjs.Length; i++)
+        {
+            if (adjs[i] == spaceID)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private int IndexOfDir(int dir, int[] allowedDirs)
     {
 
@@ -132,7 +155,7 @@ public class PlayerController : MonoBehaviour
         return -1;
     }
 
-    private void LookForMoveInput()
+    private void LookForKeyboardMoveInput()
     {
         if (board.GetBoardState() % 2 == 1 && !waitingForAnim && !inInfoPage &&
             (actionNum < 5 || (actionNum == 5 && ResourceManager.HasSugar(1))
@@ -379,10 +402,10 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void HandleButtonSelections()
+    private void HandleButtonMouseSelections()
     {
         Vector3 mousePos = Input.mousePosition;
-        
+        Debug.Log(mousePos);
         if (mousePos.x > 1153 && mousePos.x < 1343 && mousePos.y > 275 && mousePos.y < 465)
         {
             gameManager.SelectButton(0);
@@ -461,10 +484,11 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private int GetButtonSelected()
+    private int GetButtonMouseSelected()
     {
         Vector3 mousePos = Input.mousePosition;
         
+        //Action Buttons
         if (mousePos.x > 1153 && mousePos.x < 1343 && mousePos.y > 275 && mousePos.y < 465 && !inInfoPage)
         {
             return 0;
@@ -490,6 +514,7 @@ public class PlayerController : MonoBehaviour
             return 4;
         }
 
+        //Info Screen Page Buttons
         if (mousePos.x > 1391 && mousePos.x < 1579 && mousePos.y > 39 && mousePos.y < 226 && inInfoPage)
         {
             return 0;
@@ -498,6 +523,339 @@ public class PlayerController : MonoBehaviour
         if (mousePos.x > 1625 && mousePos.x < 1815 && mousePos.y > 39 && mousePos.y < 226 && inInfoPage)
         {
             return 1;
+        }
+
+        //Board Spaces
+        int boardState = board.GetBoardState();
+        if (boardState % 4 == 0)
+        {
+            if ((600 - 399) / 2 - Mathf.Abs(mousePos.x - (600 + 399) / 2) >= Mathf.Abs(mousePos.y - 803 + (600 - 399) / 2)
+                && !inInfoPage)
+            {
+                if (boardState == 0)
+                {
+                    return 10;
+                }
+                else
+                {
+                    return 16;
+                }
+        }
+
+        if ((706 - 505) / 2 - Mathf.Abs(mousePos.x - (706 + 505) / 2) >= Mathf.Abs(mousePos.y - 909 + (706 - 505) / 2)
+                && !inInfoPage)
+            {
+                if (boardState == 0)
+                {
+                    return 11;
+                }
+                else
+                {
+                    return 15;
+                }
+            }
+
+            if ((706 - 505) / 2 - Mathf.Abs(mousePos.x - (706 + 505) / 2) >= Mathf.Abs(mousePos.y - 697 + (706 - 505) / 2)
+                && !inInfoPage)
+            {
+                if (boardState == 0)
+                {
+                    return 12;
+                }
+                else
+                {
+                    return 14;
+                }
+            }
+
+            if ((812 - 610) / 2 - Mathf.Abs(mousePos.x - (812 + 610) / 2) >= Mathf.Abs(mousePos.y - 803 + (812 - 610) / 2)
+                && !inInfoPage)
+            {
+                return 13;
+            }
+
+            if ((917 - 716) / 2 - Mathf.Abs(mousePos.x - (917 + 716) / 2) >= Mathf.Abs(mousePos.y - 909 + (917 - 716) / 2)
+                && !inInfoPage)
+            {
+                if (boardState == 0)
+                {
+                    return 14;
+                }
+                else
+                {
+                    return 12;
+                }
+            }
+
+            if ((917 - 716) / 2 - Mathf.Abs(mousePos.x - (917 + 716) / 2) >= Mathf.Abs(mousePos.y - 697 + (917 - 716) / 2)
+                && !inInfoPage)
+            {
+                if (boardState == 0)
+                {
+                    return 15;
+                }
+                else
+                {
+                    return 11;
+                }
+            }
+
+            if ((1023 - 822) / 2 - Mathf.Abs(mousePos.x - (1023 + 822) / 2) >= Mathf.Abs(mousePos.y - 803 + (1023 - 822) / 2)
+                && !inInfoPage)
+            {
+                if (boardState == 0)
+                {
+                    return 16;
+                }
+                else
+                {
+                    return 10;
+                }
+            }
+        }
+        else if (boardState % 4 == 1)
+        {
+            if (mousePos.x > 490 && mousePos.x < 632 && mousePos.y > 481 && mousePos.y < 625)
+            {
+                if (boardState == 1)
+                {
+                    return 10;
+                }
+                else
+                {
+                    return 16;
+                }
+            }
+
+            if (mousePos.x > 490 && mousePos.x < 632 && mousePos.y > 632 && mousePos.y < 774)
+            {
+                if (boardState == 1)
+                {
+                    return 11;
+                }
+                else
+                {
+                    return 15;
+                }
+            }
+
+            if (mousePos.x > 639 && mousePos.x < 782 && mousePos.y > 481 && mousePos.y < 625)
+            {
+                if (boardState == 1)
+                {
+                    return 12;
+                }
+                else
+                {
+                    return 14;
+                }
+            }
+
+            if (mousePos.x > 639 && mousePos.x < 782 && mousePos.y > 632 && mousePos.y < 774)
+            {
+                return 13;
+            }
+
+            if (mousePos.x > 639 && mousePos.x < 782 && mousePos.y > 782 && mousePos.y < 925)
+            {
+                if (boardState == 1)
+                {
+                    return 14;
+                }
+                else
+                {
+                    return 12;
+                }
+            }
+
+            if (mousePos.x > 788 && mousePos.x < 931 && mousePos.y > 632 && mousePos.y < 774)
+            {
+                if (boardState == 1)
+                {
+                    return 15;
+                }
+                else
+                {
+                    return 11;
+                }
+            }
+
+            if (mousePos.x > 788 && mousePos.x < 931 && mousePos.y > 782 && mousePos.y < 925)
+            {
+                if (boardState == 1)
+                {
+                    return 16;
+                }
+                else
+                {
+                    return 10;
+                }
+            }
+        }
+        else if (boardState % 4 == 2)
+        {
+            if ((812 - 610) / 2 - Mathf.Abs(mousePos.x - (812 + 610) / 2) >= Mathf.Abs(mousePos.y - 591 + (812 - 610) / 2)
+                && !inInfoPage)
+            {
+                if (boardState == 2)
+                {
+                    return 10;
+                }
+                else
+                {
+                    return 16;
+                }
+            }
+
+            if ((706 - 505) / 2 - Mathf.Abs(mousePos.x - (706 + 505) / 2) >= Mathf.Abs(mousePos.y - 697 + (706 - 505) / 2)
+                && !inInfoPage)
+            {
+                if (boardState == 2)
+                {
+                    return 11;
+                }
+                else
+                {
+                    return 15;
+                }
+            }
+
+            if ((917 - 716) / 2 - Mathf.Abs(mousePos.x - (917 + 716) / 2) >= Mathf.Abs(mousePos.y - 697 + (917 - 716) / 2)
+                && !inInfoPage)
+            {
+                if (boardState == 2)
+                {
+                    return 12;
+                }
+                else
+                {
+                    return 14;
+                }
+            }
+
+            if ((812 - 610) / 2 - Mathf.Abs(mousePos.x - (812 + 610) / 2) >= Mathf.Abs(mousePos.y - 803 + (812 - 610) / 2)
+                && !inInfoPage)
+            {
+                return 13;
+            }
+
+            if ((706 - 505) / 2 - Mathf.Abs(mousePos.x - (706 + 505) / 2) >= Mathf.Abs(mousePos.y - 909 + (706 - 505) / 2)
+                    && !inInfoPage)
+            {
+                if (boardState == 2)
+                {
+                    return 14;
+                }
+                else
+                {
+                    return 12;
+                }
+            }
+
+            if ((917 - 716) / 2 - Mathf.Abs(mousePos.x - (917 + 716) / 2) >= Mathf.Abs(mousePos.y - 909 + (917 - 716) / 2)
+                && !inInfoPage)
+            {
+                if (boardState == 2)
+                {
+                    return 15;
+                }
+                else
+                {
+                    return 11;
+                }
+            }
+
+            if ((812 - 610) / 2 - Mathf.Abs(mousePos.x - (812 + 610) / 2) >= Mathf.Abs(mousePos.y - 1014 + (812 - 610) / 2)
+                && !inInfoPage)
+            {
+                if (boardState == 2)
+                {
+                    return 16;
+                }
+                else
+                {
+                    return 10;
+                }
+            }
+        }
+        else
+        {
+            if (mousePos.x > 788 && mousePos.x < 931 && mousePos.y > 481 && mousePos.y < 625)
+            {
+                if (boardState == 3)
+                {
+                    return 10;
+                }
+                else
+                {
+                    return 16;
+                }
+            }
+
+            if (mousePos.x > 639 && mousePos.x < 782 && mousePos.y > 481 && mousePos.y < 625)
+            {
+                if (boardState == 3)
+                {
+                    return 11;
+                }
+                else
+                {
+                    return 15;
+                }
+            }
+
+            if (mousePos.x > 788 && mousePos.x < 931 && mousePos.y > 632 && mousePos.y < 774)
+            {
+                if (boardState == 3)
+                {
+                    return 12;
+                }
+                else
+                {
+                    return 14;
+                }
+            }
+
+            if (mousePos.x > 639 && mousePos.x < 782 && mousePos.y > 632 && mousePos.y < 774)
+            {
+                return 13;
+            }
+
+            if (mousePos.x > 490 && mousePos.x < 632 && mousePos.y > 632 && mousePos.y < 774)
+            {
+                if (boardState == 3)
+                {
+                    return 14;
+                }
+                else
+                {
+                    return 12;
+                }
+            }
+
+            if (mousePos.x > 639 && mousePos.x < 782 && mousePos.y > 782 && mousePos.y < 925)
+            {
+                if (boardState == 3)
+                {
+                    return 15;
+                }
+                else
+                {
+                    return 11;
+                }
+            }
+
+            if (mousePos.x > 490 && mousePos.x < 632 && mousePos.y > 782 && mousePos.y < 925)
+            {
+                if (boardState == 3)
+                {
+                    return 16;
+                }
+                else
+                {
+                    return 10;
+                }
+            }
         }
 
         return -1;
@@ -540,6 +898,20 @@ public class PlayerController : MonoBehaviour
                 {
                     waitingForAnim = true;
                     gameManager.EndTurnInit();
+                }
+                else if (index >= 10 && index <= 16)
+                { 
+                    if (CanMove(index % 10))
+                    {
+                        waitingForAnim = true;
+                        nextSpace = index % 10;
+                        nextXPos = BoardManager.BOARDS[board.GetBoardState(), index % 10].GetXPos() +
+                                   board.transform.position.x;
+                        nextYPos = BoardManager.BOARDS[board.GetBoardState(), index % 10].GetYPos() +
+                                   board.transform.position.y;
+                        actionNum++;
+                        InvokeRepeating("Move", 0, 1 / 60f);
+                    }
                 }
             }
             else if (index != -1 && inInfoPage)
@@ -597,6 +969,22 @@ public class PlayerController : MonoBehaviour
                 {
                     waitingForAnim = true;
                     gameManager.EndTurnInit();
+                }
+                else if (index >= 10 && index <= 16)
+                {
+                    if (CanMove(index % 10))
+                    {
+                        waitingForAnim = true;
+                        nextSpace = index % 10;
+                        nextXPos = BoardManager.BOARDS[board.GetBoardState(), index % 10].GetXPos() +
+                                   board.transform.position.x;
+                        nextYPos = BoardManager.BOARDS[board.GetBoardState(), index % 10].GetYPos() +
+                                   board.transform.position.y;
+                        ResourceManager.RemoveSugar();
+                        gameManager.UpdateHandDisplay();
+                        actionNum++;
+                        InvokeRepeating("Move", 0, 1 / 60f);
+                    }
                 }
             }
             else if (index != -1 && inInfoPage)
@@ -657,6 +1045,23 @@ public class PlayerController : MonoBehaviour
                 {
                     waitingForAnim = true;
                     gameManager.EndTurnInit();
+                }
+                else if (index >= 10 && index <= 16)
+                {
+                    if (CanMove(index % 10))
+                    {
+                        waitingForAnim = true;
+                        nextSpace = index % 10;
+                        nextXPos = BoardManager.BOARDS[board.GetBoardState(), index % 10].GetXPos() +
+                                   board.transform.position.x;
+                        nextYPos = BoardManager.BOARDS[board.GetBoardState(), index % 10].GetYPos() +
+                                   board.transform.position.y;
+                        ResourceManager.RemoveSugar();
+                        ResourceManager.RemoveSugar();
+                        gameManager.UpdateHandDisplay();
+                        actionNum++;
+                        InvokeRepeating("Move", 0, 1 / 60f);
+                    }
                 }
             }
             else if (index != -1 && inInfoPage)

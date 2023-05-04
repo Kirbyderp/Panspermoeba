@@ -225,7 +225,7 @@ public class GameManager : MonoBehaviour
     public void SelectButton(int index)
     {
         actionButtonsSelected[index].SetActive(true);
-        if (index == 2)
+        if (index == 2 && !playerController.GetWaitingForAnim())
         {
             playerMicrobe.enabled = false;
             scavAmtIndicatorToggle.SetActive(true);
