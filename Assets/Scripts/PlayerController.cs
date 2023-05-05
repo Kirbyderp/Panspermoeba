@@ -97,7 +97,7 @@ public class PlayerController : MonoBehaviour
                 waitingForAnim = true;
                 ResourceManager.RaiseGene();
                 gameManager.UpdateHandDisplay();
-                gameManager.RaiseRadibar(1, new int[] {0, 3, 4});
+                gameManager.RaiseRadibar(1, new int[] {0, 3, 6});
             }
         }
     }
@@ -1052,7 +1052,7 @@ public class PlayerController : MonoBehaviour
                     ResourceManager.RaiseGene();
                     gameManager.UpdateHandDisplay();
                     actionNum++;
-                    gameManager.RaiseRadibar(1, new int[] { 0, 3, 4 });
+                    gameManager.RaiseRadibar(1, new int[] { 0, 3, 6 });
                 }
                 else if (index == 2)
                 {
@@ -1126,7 +1126,7 @@ public class PlayerController : MonoBehaviour
                     ResourceManager.RemoveGlucose();
                     gameManager.UpdateHandDisplay();
                     actionNum++;
-                    gameManager.RaiseRadibar(1, new int[] { 0, 1, 3, 4 });
+                    gameManager.RaiseRadibar(1, new int[] { 0, 1, 3, 6 });
                 }
                 else if (index == 2 && ResourceManager.HasGlucose(1))
                 {
@@ -1210,7 +1210,7 @@ public class PlayerController : MonoBehaviour
                     ResourceManager.RemoveGlucose();
                     gameManager.UpdateHandDisplay();
                     actionNum++;
-                    gameManager.RaiseRadibar(1, new int[] { 0, 1, 2, 3, 4 });
+                    gameManager.RaiseRadibar(1, new int[] { 0, 1, 2, 3, 6 });
                 }
                 else if (index == 2 && ResourceManager.HasGlucose(2))
                 {

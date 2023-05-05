@@ -288,4 +288,9 @@ public class ResourceManager
             }
         }
     }
+
+    public static void Event1()
+    {
+
+    }
 }

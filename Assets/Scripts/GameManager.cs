@@ -34,6 +34,7 @@ public class GameManager : MonoBehaviour
                          infoButtonsSelected = new GameObject[2];
     private readonly float[] trackerYPos = { 2.955f, 2.245f, 1.525f, .83f, .115f, -.59f, -1.3f, -2.02f };
     private GameObject turnTracker, actionTracker;
+    private GameObject[] eventXs = new GameObject[8];
     private int activePage = 1;
 
     private bool waitingForEndTurnAnim1 = false, waitingForEndTurnAnim2 = false;
@@ -57,16 +58,22 @@ public class GameManager : MonoBehaviour
         bText = GameObject.Find("Base Pair Text").GetComponent<TMPro.TextMeshProUGUI>();
         ResourceManager.SetUpDeck();
 
-        rLossIndicators[0] = GameObject.Find("Lose Glucose 1");
-        rLossIndicators[1] = GameObject.Find("Lose Glucose 2");
-        rLossIndicators[2] = GameObject.Find("Lose Glucose 3");
-        rLossIndicators[3] = GameObject.Find("Lose Phosphate");
-        rLossIndicators[4] = GameObject.Find("Lose Base Pair");
         for (int i = 0; i < rLossIndicators.Length; i++)
         {
+            if (i < 3)
+            {
+                rLossIndicators[i] = GameObject.Find("Lose Glucose " + i % 3);
+            }
+            else if (i < 6)
+            {
+                rLossIndicators[i] = GameObject.Find("Lose Phosphate " + i % 3);
+            }
+            else if (i < 9)
+            {
+                rLossIndicators[i] = GameObject.Find("Lose Base Pair " + i % 3);
+            }
             rLossIndicators[i].GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
         }
-
         for (int i = 0; i < 12; i++)
         {
             if (i < 4)
@@ -123,6 +130,10 @@ public class GameManager : MonoBehaviour
         infoButtonsSelected[1] = GameObject.Find("Left Button S");
         turnTracker = GameObject.Find("Turn Tracker");
         actionTracker = GameObject.Find("Action Tracker");
+        for (int i = 0; i < eventXs.Length; i++)
+        {
+            eventXs[i] = GameObject.Find("Event " + (i + 1) + " X");
+        }
 
         eventFade = GameObject.Find("Event Fade");
         eventFrame = GameObject.Find("Event Frame");
@@ -131,6 +142,10 @@ public class GameManager : MonoBehaviour
         eventFade.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
         eventFrame.GetComponent<SpriteRenderer>().color = new Color(238f / 255, 238f / 255, 238f / 255, 0);
         eventWindow.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
+        if (controlScheme == 0)
+        {
+            continueSelect.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 1);
+        }
 
         eventHeader = GameObject.Find("Event Header").GetComponent<TMPro.TextMeshProUGUI>();
         eventText = GameObject.Find("Event Text").GetComponent<TMPro.TextMeshProUGUI>();
@@ -155,6 +170,11 @@ public class GameManager : MonoBehaviour
         {
             actionButtonsSelected[0].SetActive(true);
             actionButtonsDeselected[0].SetActive(false);
+        }
+
+        foreach (GameObject eventX in eventXs)
+        {
+            eventX.SetActive(false);
         }
 
         infoButtonsSelected[0].SetActive(false);
@@ -194,6 +214,11 @@ public class GameManager : MonoBehaviour
                 hasRead = false;
             }
         }
+    }
+
+    public void SetWaitingForEndTurnAnim1(bool waitIn)
+    {
+        waitingForEndTurnAnim1 = waitIn;
     }
 
     public void UpdateHandDisplay()
@@ -373,6 +398,13 @@ public class GameManager : MonoBehaviour
         infoScreen.SetActive(true);
         if (activePage == 2)
         {
+            for (int i = 0; i < eventXs.Length; i++)
+            {
+                if (EventManager.HasEventOccurred(i))
+                {
+                    eventXs[i].SetActive(true);
+                }
+            }
             turnTracker.transform.position = new Vector3(turnTracker.transform.position.x,
                                                          trackerYPos[turnNumber - 1],
                                                          turnTracker.transform.position.z);
