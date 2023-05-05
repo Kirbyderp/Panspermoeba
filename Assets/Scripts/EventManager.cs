@@ -5,6 +5,7 @@ using UnityEngine;
 public class EventManager
 {
     private static bool[] eventsOccurred = {false, false, false, false, false, false, false, false};
+    private static GameManager gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
     public static readonly string[] EVENT_TEXT = { "You are attacked by other microorganisms on " +
                                                      "the asteroid! Lose 3 of your resources or " +
                                                      "all of them if you have less than 3.",
@@ -83,35 +84,56 @@ public class EventManager
     {
         if (index == 0)
         {
-
+            ResourceManager.Event0();
         }
         else if (index == 1)
         {
-
+            gameManager.SetWaitingForEndTurnAnim1(true);
+            if (gameManager.CanRaiseGene(1))
+            {
+                gameManager.RaiseRadibar(1, new int[] { });
+            }
+            else
+            {
+                gameManager.SetWaitingForEndTurnAnim1(false);
+            }
         }
         else if (index == 2)
         {
-
+            ResourceManager.Event2();
         }
         else if (index == 3)
         {
-
+            gameManager.Event3();
         }
         else if (index == 4)
         {
-
+            gameManager.Event4();
         }
         else if (index == 5)
         {
-
+            gameManager.SetWaitingForEndTurnAnim1(true);
+            if (gameManager.CanRaiseGene(-2))
+            {
+                gameManager.Event5();
+                gameManager.RaiseRadibar(-1, new int[] { });
+            }
+            else if (gameManager.CanRaiseGene(-1))
+            {
+                gameManager.RaiseRadibar(-1, new int[] { });
+            }
+            else
+            {
+                gameManager.SetWaitingForEndTurnAnim1(false);
+            }
         }
         else if (index == 6)
         {
-
+            gameManager.Event6();
         }
         else if (index == 7)
         {
-
+            gameManager.SetWaitingForEndTurnAnim1(false);
         }
     }
 }

@@ -430,7 +430,7 @@ public class PlayerController : MonoBehaviour
 
     private void LookForKeyboardSelectInput()
     {
-        if (!inInfoPage)
+        if (!inInfoPage && !waitingForAnim)
         {
             if (Input.GetKeyDown(selectL))
             {
@@ -464,7 +464,7 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
-        else
+        else if (!waitingForAnim)
         {
             if (Input.GetKeyDown(selectL))
             {

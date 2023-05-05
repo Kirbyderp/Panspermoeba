@@ -5,7 +5,7 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     private TMPro.TextMeshProUGUI gText, pText, bText;
-    private GameObject[] rLossIndicators = new GameObject[5];
+    private GameObject[] rLossIndicators = new GameObject[9];
     private GameObject[,] rGainIndicators = new GameObject[2,12];
     private float[] gGainLossXPositions = { -4.6f, -4.4f};
 
@@ -19,6 +19,7 @@ public class GameManager : MonoBehaviour
                              radiS = { .38f, 1.02f, 1.66f, 2.3f, 2.94f, 3.58f,
                                        4.22f, 4.86f, 5.5f, 6.14f, 6.78f}; //.64 diff
     private int thermoLevel = 0, radiLevel = 0, endLevel = 0, count = 0;
+
     private PlayerController playerController;
     private BoardManager boardManager;
 
@@ -42,6 +43,8 @@ public class GameManager : MonoBehaviour
     private TMPro.TextMeshProUGUI eventHeader, eventText, eventContinue;
     private int eventID = -1;
     private bool waitingForHavingRead = false;
+    private bool event3Mod = false, event4Mod = false, event5Mod = false, event6Mod = false;
+    private GameObject hEventIndOff, rEventIndOff, wEventIndOff, hEventIndOn, rEventIndOn, wEventIndOn;
     private int endTurnToLower = 0, numLowered = 0;
 
     private int turnNumber = 1;
@@ -154,6 +157,13 @@ public class GameManager : MonoBehaviour
         eventText.color = new Color(1, 1, 1, 0);
         eventContinue.color = new Color(1, 1, 1, 0);
 
+        hEventIndOff = GameObject.Find("Heat Up Event Indicator Off");
+        rEventIndOff = GameObject.Find("Rad Event Indicator Off");
+        wEventIndOff = GameObject.Find("Water Event Indicator Off");
+        hEventIndOn = GameObject.Find("Heat Up Event Indicator On");
+        rEventIndOn = GameObject.Find("Rad Event Indicator On");
+        wEventIndOn = GameObject.Find("Water Event Indicator On");
+
         StartCoroutine(HideStuff());
     }
 
@@ -183,6 +193,10 @@ public class GameManager : MonoBehaviour
         infoScreen.SetActive(false);
 
         continueSelect.SetActive(false);
+
+        hEventIndOn.SetActive(false);
+        rEventIndOn.SetActive(false);
+        wEventIndOn.SetActive(false);
     }
 
     // Update is called once per frame
@@ -191,8 +205,9 @@ public class GameManager : MonoBehaviour
         if (waitingForHavingRead)
         {
             bool hasRead = false;
-            if (controlScheme != 0 && Input.GetKey(playerController.GetUseSelect()))
+            if (controlScheme != 0 && Input.GetKeyDown(playerController.GetUseSelect()))
             {
+                hasRead = true;
                 continueSelect.SetActive(false);
                 eventContinue.color = new Color(1, 1, 1, 0);
                 InvokeRepeating("FadeOutEvent", 0, 1 / 60f);
@@ -203,6 +218,7 @@ public class GameManager : MonoBehaviour
                 if (Input.GetKeyDown(KeyCode.Mouse0) && mousePos.x > 756
                     && mousePos.x < 1161 && mousePos.y > 150 && mousePos.y < 284)
                 {
+                    hasRead = true;
                     continueSelect.SetActive(false);
                     eventContinue.color = new Color(1, 1, 1, 0);
                     InvokeRepeating("FadeOutEvent", 0, 1 / 60f);
@@ -219,6 +235,29 @@ public class GameManager : MonoBehaviour
     public void SetWaitingForEndTurnAnim1(bool waitIn)
     {
         waitingForEndTurnAnim1 = waitIn;
+    }
+
+    public void Event3()
+    {
+        event3Mod = true;
+        waitingForEndTurnAnim1 = false;
+    }
+
+    public void Event4()
+    {
+        event4Mod = true;
+        waitingForEndTurnAnim1 = false;
+    }
+
+    public void Event5()
+    {
+        event5Mod = true;
+    }
+
+    public void Event6()
+    {
+        event6Mod = true;
+        waitingForEndTurnAnim1 = false;
     }
 
     public void UpdateHandDisplay()
@@ -331,9 +370,19 @@ public class GameManager : MonoBehaviour
                                                        radibar.transform.localScale.z);
             radiLevel = endLevel;
             CancelInvoke();
-            if (!waitingForEndTurnAnim2)
+            if (!waitingForEndTurnAnim1 && !waitingForEndTurnAnim2)
             {
                 playerController.SetWaitingForAnim(false);
+            }
+            else if (event5Mod)
+            {
+                event5Mod = false;
+                RaiseRadibar(-1, new int[] { });
+            }
+            else if (waitingForEndTurnAnim1)
+            {
+                waitingForEndTurnAnim1 = false;
+                EndTurnBoard();
             }
             else
             {
@@ -605,6 +654,21 @@ public class GameManager : MonoBehaviour
     IEnumerator LoadEventText()
     {
         eventID = EventManager.PickEvent();
+        if (eventID == 3)
+        {
+            hEventIndOff.SetActive(false);
+            hEventIndOn.SetActive(true);
+        }
+        else if (eventID == 4)
+        {
+            rEventIndOff.SetActive(false);
+            rEventIndOn.SetActive(true);
+        }
+        else if (eventID == 7)
+        {
+            wEventIndOff.SetActive(false);
+            wEventIndOn.SetActive(true);
+        }
 
         yield return new WaitForSeconds(.5f);
 
@@ -635,7 +699,7 @@ public class GameManager : MonoBehaviour
                                                                         238f / 255, 0);
             eventWindow.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
             eventHeader.color = new Color(1, 1, 1, 0);
-            eventText.color = new Color(1, 1, 1, 0);
+            eventText.color = new Color(0, 0, 0, 0);
             CancelInvoke();
             EndTurnEvent();
         }
@@ -643,8 +707,18 @@ public class GameManager : MonoBehaviour
 
     public void EndTurnEvent()
     {
+        waitingForEndTurnAnim1 = true;
         EventManager.TriggerEvent(eventID);
-        EndTurnBoard();
+        InvokeRepeating("WaitForEndTurnEvent", 0, 1 / 60f);
+    }
+
+    private void WaitForEndTurnEvent()
+    {
+        if (!waitingForEndTurnAnim1)
+        {
+            CancelInvoke();
+            EndTurnBoard();
+        }
     }
 
     public void EndTurnBoard()
@@ -656,9 +730,9 @@ public class GameManager : MonoBehaviour
     {
         BoardSpace curSpace = BoardManager.BOARDS[boardManager.GetBoardState(), playerController.GetCurSpace()];
         numLowered = 0;
-        if (CanRaiseTemp(curSpace.GetTempReduce()))
+        if (CanRaiseTemp(curSpace.GetTempReduce() + (event3Mod ? 1 : 0) - (event6Mod ? 1 : 0)))
         {
-            endTurnToLower = -curSpace.GetTempReduce();
+            endTurnToLower = -(curSpace.GetTempReduce() + (event3Mod ? 1 : 0) - (event6Mod ? 1 : 0));
         }
         else
         {
@@ -666,6 +740,7 @@ public class GameManager : MonoBehaviour
         }
         if (numLowered < endTurnToLower)
         {
+            waitingForEndTurnAnim2 = true;
             RaiseThermobar(-1, new int[] { });
         }
         else if (endTurnToLower == 0)
@@ -678,21 +753,50 @@ public class GameManager : MonoBehaviour
     {
         BoardSpace curSpace = BoardManager.BOARDS[boardManager.GetBoardState(), playerController.GetCurSpace()];
         numLowered = 0;
-        if (CanRaiseGene(curSpace.GetGeneReduce()))
+        if (event6Mod)
         {
-            endTurnToLower = -curSpace.GetGeneReduce();
+            if (curSpace.GetID() == 3)
+            {
+                if (CanRaiseGene(event4Mod ? -2 : 0))
+                {
+                    endTurnToLower = (curSpace.GetID() == 3 && event4Mod) ? 2 : 0;
+                }
+                else if (CanRaiseGene(-1))
+                {
+                    endTurnToLower = 1;
+                    //Game Over
+                }
+                else
+                {
+                    //Game Over
+                }
+            }
+            else
+            {
+                endTurnToLower = 0;
+            }
         }
         else
         {
-            endTurnToLower = radiLevel;
+            if (CanRaiseGene(curSpace.GetGeneReduce() - ((curSpace.GetID() == 3 && event4Mod) ? 2 : 0)))
+            {
+                endTurnToLower = -(curSpace.GetGeneReduce() - ((curSpace.GetID() == 3 && event4Mod) ? 2 : 0));
+            }
+            else
+            {
+                endTurnToLower = radiLevel;
+            } 
         }
+
         if (numLowered < endTurnToLower)
         {
+            waitingForEndTurnAnim2 = true;
             RaiseRadibar(-1, new int[] { });
         }
         else if (endTurnToLower == 0)
         {
             EndTurnFinal();
+            //Game Over
         }
     }
 
@@ -702,6 +806,12 @@ public class GameManager : MonoBehaviour
         {
             turnNumber++;
         }
+        
+        if (event6Mod)
+        {
+            event6Mod = false;
+        }
+        
         waitingForEndTurnAnim2 = false;
         
         if (thermoLevel < 4)

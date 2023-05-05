@@ -7,7 +7,7 @@ public class ResourceManager
     private static List<Resource> resourceDeck;
     private static List<Resource> playerHand;
     private static List<Resource> discardPile;
-    private static GameManager gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+    private static GameManager gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
 
 
     public static List<Resource> GetPlayerHand()
@@ -146,14 +146,14 @@ public class ResourceManager
         }
         else if (bCount == 2)
         {
-            indices[gCount] = 8;
-            indices[gCount + 1] = 9;
+            indices[gCount + pCount] = 8;
+            indices[gCount + pCount + 1] = 9;
         }
         else if (bCount == 3)
         {
             indices[gCount + pCount] = 8;
-            indices[gCount + pCount] = 9;
-            indices[gCount + pCount] = 10;
+            indices[gCount + pCount + 1] = 9;
+            indices[gCount + pCount + 2] = 10;
         }
         else if (bCount == 4)
         {
@@ -289,8 +289,188 @@ public class ResourceManager
         }
     }
 
-    public static void Event1()
+    public static void Event0()
     {
+        gameManager.SetWaitingForEndTurnAnim1(true);
+        int gCount = 0, pCount = 0, bCount = 0;
+        if (playerHand.Count > 2)
+        {
+            for (int cardsRemoved = 0; cardsRemoved < 3; cardsRemoved++)
+            {
+                int index = Random.Range(0, playerHand.Count);
+                if (playerHand[index].ToString().Equals(Resource.TYPES[1]))
+                {
+                    gCount++;
+                }
+                else if (playerHand[index].ToString().Equals(Resource.TYPES[2]))
+                {
+                    pCount++;
+                }
+                else if (playerHand[index].ToString().Equals(Resource.TYPES[3]))
+                {
+                    bCount++;
+                }
+                discardPile.Add(playerHand[index]);
+                playerHand.RemoveAt(index);
+            }
+        }
+        else
+        {
+            while (playerHand.Count != 0)
+            {
+                if (playerHand[0].ToString().Equals(Resource.TYPES[1]))
+                {
+                    gCount++;
+                }
+                else if (playerHand[0].ToString().Equals(Resource.TYPES[2]))
+                {
+                    pCount++;
+                }
+                else if (playerHand[0].ToString().Equals(Resource.TYPES[3]))
+                {
+                    bCount++;
+                }
+                discardPile.Add(playerHand[0]);
+                playerHand.RemoveAt(0);
+            }
+        }
 
+        int[] indices = new int[gCount + pCount + bCount];
+        if (indices.Length > 0)
+        {
+            if (gCount == 1)
+            {
+                indices[0] = 0;
+            }
+            else if (gCount == 2)
+            {
+                indices[0] = 0;
+                indices[1] = 1;
+            }
+            else if (gCount == 3)
+            {
+                indices[0] = 0;
+                indices[1] = 1;
+                indices[2] = 2;
+            }
+
+            if (pCount == 1)
+            {
+                indices[gCount] = 3;
+            }
+            else if (pCount == 2)
+            {
+                indices[gCount] = 3;
+                indices[gCount + 1] = 4;
+            }
+            else if (pCount == 3)
+            {
+                indices[0] = 3;
+                indices[1] = 4;
+                indices[2] = 5;
+            }
+
+            if (bCount == 1)
+            {
+                indices[gCount + pCount] = 6;
+            }
+            else if (bCount == 2)
+            {
+                indices[gCount + pCount] = 6;
+                indices[gCount + pCount + 1] = 7;
+            }
+            else if (bCount == 3)
+            {
+                indices[0] = 6;
+                indices[1] = 7;
+                indices[2] = 8;
+            }
+
+            gameManager.UpdateHandDisplay();
+            gameManager.StartCoroutine(gameManager.LoseResourceDisplay(indices));
+        }
+        else
+        {
+            gameManager.SetWaitingForEndTurnAnim1(false);
+        }
+    }
+
+    public static void Event2()
+    {
+        gameManager.SetWaitingForEndTurnAnim1(true);
+        int gCount = 0, pCount = 0, bCount = 0;
+        for (int i = 0; i < 2; i++)
+        {
+            if (resourceDeck.Count == 0 && discardPile.Count != 0)
+            {
+                ShuffleDeck();
+            }
+
+            if (resourceDeck.Count != 0)
+            {
+                int cardIndex = Random.Range(0, resourceDeck.Count);
+                if (resourceDeck[cardIndex].ToString().Equals(Resource.TYPES[0]))
+                {
+                    discardPile.Add(resourceDeck[cardIndex]);
+                }
+                else
+                {
+                    playerHand.Add(resourceDeck[cardIndex]);
+                    if (resourceDeck[cardIndex].ToString().Equals(Resource.TYPES[1]))
+                    {
+                        gCount++;
+                    }
+                    else if (resourceDeck[cardIndex].ToString().Equals(Resource.TYPES[2]))
+                    {
+                        pCount++;
+                    }
+                    else
+                    {
+                        bCount++;
+                    }
+                }
+                resourceDeck.RemoveAt(cardIndex);
+            }
+        }
+
+        int[] indices = new int[gCount + pCount + bCount];
+        if (indices.Length > 0)
+        {
+            if (gCount == 1)
+            {
+                indices[0] = 0;
+            }
+            else if (gCount == 2)
+            {
+                indices[0] = 0;
+                indices[1] = 1;
+            }
+
+            if (pCount == 1)
+            {
+                indices[gCount] = 4;
+            }
+            else if (pCount == 2)
+            {
+                indices[0] = 4;
+                indices[1] = 5;
+            }
+
+            if (bCount == 1)
+            {
+                indices[gCount + pCount] = 8;
+            }
+            else if (bCount == 2)
+            {
+                indices[0] = 8;
+                indices[1] = 9;
+            }
+            gameManager.UpdateHandDisplay();
+            gameManager.StartCoroutine(gameManager.GainResourceDisplay(indices));
+        }
+        else
+        {
+            gameManager.SetWaitingForEndTurnAnim1(false);
+        }
     }
 }

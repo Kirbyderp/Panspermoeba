@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BoardSpace
 {
-    private int id;
+    private int ID;
     private int[] adjs; //ID's of adjacent spaces
     private int[] dirs; //dirs[i] indicates the direction to the space with ID adjs[i] 
 
@@ -16,7 +16,7 @@ public class BoardSpace
 
     public BoardSpace()
     {
-        id = 0;
+        ID = 0;
         adjs = new int[0];
         dirs = new int[0];
         xPos = 0;
@@ -28,7 +28,7 @@ public class BoardSpace
 
     public BoardSpace(int idIn, int[] adjsIn, int[] dirsIn, float xPosIn, float yPosIn, int tempIn, int geneIn)
     {
-        id = idIn;
+        ID = idIn;
         adjs = adjsIn;
         dirs = dirsIn;
         xPos = xPosIn;
@@ -36,6 +36,11 @@ public class BoardSpace
         scavAmt = 4;
         tempReduce = tempIn;
         geneReduce = geneIn;
+    }
+
+    public int GetID()
+    {
+        return ID;
     }
 
     public int[] GetAdjs()
