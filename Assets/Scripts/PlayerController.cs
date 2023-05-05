@@ -147,6 +147,11 @@ public class PlayerController : MonoBehaviour
         actionNum = actIn;
     }
 
+    public KeyCode GetUseSelect()
+    {
+        return useSelect;
+    }
+
     private bool CanMove(int dir, int[] allowedDirs)
     {
         

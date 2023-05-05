@@ -9,7 +9,6 @@ public class GameManager : MonoBehaviour
     private GameObject[,] rGainIndicators = new GameObject[2,12];
     private float[] gGainLossXPositions = { -4.6f, -4.4f};
 
-
     private GameObject thermobar, radibar;
     private readonly float[] thermoY = { -3.475f, -3.195f, -2.915f, -2.635f, -2.355f, -2.075f, -1.795f,
                                          -1.515f, -1.235f, -0.955f, -0.675f, -0.395f, -0.115f, 0 }, //.28 diff
@@ -37,11 +36,15 @@ public class GameManager : MonoBehaviour
     private GameObject turnTracker, actionTracker;
     private int activePage = 1;
 
-    bool waitingForEndTurnAnim1 = false, waitingForEndTurnAnim2 = false;
-    int endTurnToLower = 0, numLowered = 0;
+    private bool waitingForEndTurnAnim1 = false, waitingForEndTurnAnim2 = false;
+    private GameObject eventFade, eventFrame, eventWindow, continueSelect;
+    private TMPro.TextMeshProUGUI eventHeader, eventText, eventContinue;
+    private int eventID = -1;
+    private bool waitingForHavingRead = false;
+    private int endTurnToLower = 0, numLowered = 0;
 
-    int turnNumber = 1;
-    int controlScheme = 2; //0 == mouse only, 1 == keyboard only, 2 == both
+    private int turnNumber = 1;
+    private int controlScheme = 2; //0 == mouse only, 1 == keyboard only, 2 == both
 
     // Start is called before the first frame update
     void Start()
@@ -121,6 +124,21 @@ public class GameManager : MonoBehaviour
         turnTracker = GameObject.Find("Turn Tracker");
         actionTracker = GameObject.Find("Action Tracker");
 
+        eventFade = GameObject.Find("Event Fade");
+        eventFrame = GameObject.Find("Event Frame");
+        eventWindow = GameObject.Find("Event Window");
+        continueSelect = GameObject.Find("Continue Select");
+        eventFade.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
+        eventFrame.GetComponent<SpriteRenderer>().color = new Color(238f / 255, 238f / 255, 238f / 255, 0);
+        eventWindow.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
+
+        eventHeader = GameObject.Find("Event Header").GetComponent<TMPro.TextMeshProUGUI>();
+        eventText = GameObject.Find("Event Text").GetComponent<TMPro.TextMeshProUGUI>();
+        eventContinue = GameObject.Find("Event Continue").GetComponent<TMPro.TextMeshProUGUI>();
+        eventHeader.color = new Color(1, 1, 1, 0);
+        eventText.color = new Color(1, 1, 1, 0);
+        eventContinue.color = new Color(1, 1, 1, 0);
+
         StartCoroutine(HideStuff());
     }
 
@@ -143,12 +161,39 @@ public class GameManager : MonoBehaviour
         infoButtonsSelected[1].SetActive(false);
         infoPage2.SetActive(false);
         infoScreen.SetActive(false);
+
+        continueSelect.SetActive(false);
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        if (waitingForHavingRead)
+        {
+            bool hasRead = false;
+            if (controlScheme != 0 && Input.GetKey(playerController.GetUseSelect()))
+            {
+                continueSelect.SetActive(false);
+                eventContinue.color = new Color(1, 1, 1, 0);
+                InvokeRepeating("FadeOutEvent", 0, 1 / 60f);
+            }
+            else if (controlScheme != 1 && !hasRead)
+            {
+                Vector3 mousePos = Input.mousePosition;
+                if (Input.GetKeyDown(KeyCode.Mouse0) && mousePos.x > 756
+                    && mousePos.x < 1161 && mousePos.y > 150 && mousePos.y < 284)
+                {
+                    continueSelect.SetActive(false);
+                    eventContinue.color = new Color(1, 1, 1, 0);
+                    InvokeRepeating("FadeOutEvent", 0, 1 / 60f);
+                }
+            }
+            if (hasRead)
+            {
+                waitingForHavingRead = false;
+                hasRead = false;
+            }
+        }
     }
 
     public void UpdateHandDisplay()
@@ -500,13 +545,73 @@ public class GameManager : MonoBehaviour
         if (!waitingForEndTurnAnim1)
         {
             CancelInvoke();
-            endTurnEvent();
+            InvokeRepeating("FadeInEvent", 0, 1 / 60f);
         }
     }
 
-    public void endTurnEvent()
+    public void FadeInEvent()
     {
-        EventManager.TriggerEvent(EventManager.PickEvent());
+        count++;
+        eventFade.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, count / 100f);
+        eventFrame.GetComponent<SpriteRenderer>().color = new Color(238f / 255, 238f / 255,
+                                                                    238f / 255, count / 60f);
+        eventWindow.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, count / 60f);
+        eventHeader.color = new Color(1, 1, 1, count / 60f);
+        if (count == 60)
+        {
+            count = 0;
+            eventFade.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, .6f);
+            eventFrame.GetComponent<SpriteRenderer>().color = new Color(238f / 255, 238f / 255,
+                                                                        238f / 255, 1);
+            eventWindow.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 1);
+            eventHeader.color = new Color(1, 1, 1, 1);
+            CancelInvoke();
+            StartCoroutine(LoadEventText());
+        }
+    }
+
+    IEnumerator LoadEventText()
+    {
+        eventID = EventManager.PickEvent();
+
+        yield return new WaitForSeconds(.5f);
+
+        eventText.color = new Color(1, 1, 1, 1);
+        eventText.text = EventManager.EVENT_TEXT[eventID];
+
+        yield return new WaitForSeconds(1);
+
+        continueSelect.SetActive(true);
+        eventContinue.color = new Color(1, 1, 1, 1);
+        waitingForHavingRead = true;
+    }
+
+    public void FadeOutEvent()
+    {
+        count++;
+        eventFade.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, .6f - count / 100f);
+        eventFrame.GetComponent<SpriteRenderer>().color = new Color(238f / 255, 238f / 255,
+                                                                    238f / 255, 1 - count / 60f);
+        eventWindow.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 1 - count / 60f);
+        eventHeader.color = new Color(1, 1, 1, 1 - count / 60f);
+        eventText.color = new Color(1, 1, 1, 1 - count / 60f);
+        if (count == 60)
+        {
+            count = 0;
+            eventFade.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
+            eventFrame.GetComponent<SpriteRenderer>().color = new Color(238f / 255, 238f / 255,
+                                                                        238f / 255, 0);
+            eventWindow.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
+            eventHeader.color = new Color(1, 1, 1, 0);
+            eventText.color = new Color(1, 1, 1, 0);
+            CancelInvoke();
+            EndTurnEvent();
+        }
+    }
+
+    public void EndTurnEvent()
+    {
+        EventManager.TriggerEvent(eventID);
         EndTurnBoard();
     }
 

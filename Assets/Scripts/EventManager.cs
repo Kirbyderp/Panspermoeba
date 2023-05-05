@@ -5,6 +5,44 @@ using UnityEngine;
 public class EventManager
 {
     private static bool[] eventsOccurred = {false, false, false, false, false, false, false, false};
+    public static readonly string[] EVENT_TEXT = { "You are attacked by other microorganisms on " +
+                                                     "the asteroid! Lose 3 of your resources or " +
+                                                     "all of them if you have less than 3.",
+                                                   "You find another microorganism and exchange " +
+                                                     "DNA with them. Raise your genetic " +
+                                                     "stability by 10%.",
+                                                   "You find a dead bacteria and are able to " +
+                                                     "harvest 2 resources from it.",
+                                                   "The asteroid is traveling closer to the sun. " +
+                                                     "From this point on, during the upkeep " +
+                                                     "phase, treat all temperature changes as if " +
+                                                     "they are +1T compared to their original " +
+                                                     "values.",
+                                                   "Radioactive material inside the asteroid has " +
+                                                     "caused radiation to build up. The center " +
+                                                     "tile is now irradiated. During the upkeep " +
+                                                     "phase, treat the center tile as if it has " +
+                                                     "+2R compared to its original values.",
+                                                   "Fringe radiation from a solar flare has hit " +
+                                                     "the asteroid! Decrease your genetic " +
+                                                     "stability by 2 steps (20%).",
+                                                   "Another asteroid has passed in front of your " +
+                                                     "asteroid! Ignore all radiation during this " +
+                                                     "upkeep phase (except from event 5 if " +
+                                                     "applicable), but treat all temperature " +
+                                                     "changes as if they are -1T compared to " +
+                                                     "their original values for this turn.",
+                                                   "A water pocket has been found in the center " +
+                                                     "of the asteroid. Once per action, whenever " +
+                                                     "you scavenge for resources in the center " +
+                                                     "tile, you can discard any number of cards " +
+                                                     "from your hand and draw that many from the " +
+                                                     "deck.",
+                                                   "Your asteroid is entering the destination " +
+                                                     "planet! During the upkeep phase, treat all " +
+                                                     "temperature changes as if they are +7T " +
+                                                     "compared to their original values. Don’t " +
+                                                     "burn up with the asteroid!"};
 
     public static bool HasEventOccurred(int index)
     {
@@ -29,6 +67,7 @@ public class EventManager
             else
             {
                 pickedEvent = true;
+                eventsOccurred[index] = true;
             }
             
             if (index < 0)
