@@ -6,6 +6,8 @@ public class EventManager
 {
     private static bool[] eventsOccurred = {false, false, false, false, false, false, false, false};
     private static GameManager gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
+    private static PlayerController playerController = GameObject.Find("Player Microbe")
+                                                                 .GetComponent<PlayerController>();
     public static readonly string[] EVENT_TEXT = { "You are attacked by other microorganisms on " +
                                                      "the asteroid! Lose 3 of your resources or " +
                                                      "all of them if you have less than 3.",
@@ -133,7 +135,7 @@ public class EventManager
         }
         else if (index == 7)
         {
-            gameManager.SetWaitingForEndTurnAnim1(false);
+            gameManager.Event7();
         }
     }
 }

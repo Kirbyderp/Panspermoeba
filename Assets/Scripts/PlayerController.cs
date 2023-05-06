@@ -83,7 +83,10 @@ public class PlayerController : MonoBehaviour
                 int[] indices = ResourceManager.Scavenge(4, curSpace);
                 gameManager.UpdateHandDisplay();
                 StartCoroutine(gameManager.GainResourceDisplay(indices));
-                StartCoroutine(WaitForGainLossAnim());
+                if (!(gameManager.GetEvent7Mod() && curSpace == 3))
+                {
+                    StartCoroutine(WaitForGainLossAnim());
+                }
             }
             else if (Input.GetKeyDown(KeyCode.T) && ResourceManager.CanRaiseTemp(0) && gameManager.CanRaiseTemp(1))
             {
@@ -147,9 +150,24 @@ public class PlayerController : MonoBehaviour
         actionNum = actIn;
     }
 
+    public KeyCode GetSelectL()
+    {
+        return selectL;
+    }
+
+    public KeyCode GetSelectR()
+    {
+        return selectR;
+    }
+
     public KeyCode GetUseSelect()
     {
         return useSelect;
+    }
+
+    public KeyCode GetBack()
+    {
+        return back;
     }
 
     private bool CanMove(int dir, int[] allowedDirs)
@@ -1061,7 +1079,10 @@ public class PlayerController : MonoBehaviour
                                                              curSpace].GetScavAmt(), curSpace);
                     gameManager.UpdateHandDisplay();
                     StartCoroutine(gameManager.GainResourceDisplay(indices));
-                    StartCoroutine(WaitForGainLossAnim());
+                    if (!(gameManager.GetEvent7Mod() && curSpace == 3))
+                    {
+                        StartCoroutine(WaitForGainLossAnim());
+                    }
                     actionNum++;
                 }
                 else if (index == 3)
@@ -1141,7 +1162,10 @@ public class PlayerController : MonoBehaviour
                         StartCoroutine(gameManager.LoseResourceDisplay(lgIndices[0]));
                     }
                     StartCoroutine(gameManager.GainResourceDisplay(lgIndices[1]));
-                    StartCoroutine(WaitForGainLossAnim());
+                    if (!(gameManager.GetEvent7Mod() && curSpace == 3))
+                    {
+                        StartCoroutine(WaitForGainLossAnim());
+                    }
                     actionNum++;
                 }
                 else if (index == 3)
@@ -1226,7 +1250,10 @@ public class PlayerController : MonoBehaviour
                         StartCoroutine(gameManager.LoseResourceDisplay(lgIndices[0]));
                     }
                     StartCoroutine(gameManager.GainResourceDisplay(lgIndices[1]));
-                    StartCoroutine(WaitForGainLossAnim());
+                    if (!(gameManager.GetEvent7Mod() && curSpace == 3))
+                    {
+                        StartCoroutine(WaitForGainLossAnim());
+                    }
                     actionNum++;
                 }
                 else if (index == 3)
@@ -1400,21 +1427,6 @@ public class PlayerController : MonoBehaviour
                 lIndices = new int[] { 0, 1 };
                 gIndices = indices;
             }
-        }
-
-        for (int i = 0; i < indices.Length; i++)
-        {
-            Debug.Log(indices[i]);
-        }
-        Debug.Log("g");
-        for (int i = 0; i < gIndices.Length; i++)
-        {
-            Debug.Log(gIndices[i]);
-        }
-        Debug.Log("l");
-        for (int i = 0; i < lIndices.Length; i++)
-        {
-            Debug.Log(lIndices[i]);
         }
 
         return new int[][] { lIndices, gIndices };

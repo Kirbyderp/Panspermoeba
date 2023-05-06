@@ -40,11 +40,17 @@ public class GameManager : MonoBehaviour
 
     private bool waitingForEndTurnAnim1 = false, waitingForEndTurnAnim2 = false;
     private GameObject eventFade, eventFrame, eventWindow, continueSelect;
-    private TMPro.TextMeshProUGUI eventHeader, eventText, eventContinue;
+    private TMPro.TextMeshProUGUI eventHeader, eventText, eventContinue, event7Header, useless7Text;
     private int eventID = -1;
-    private bool waitingForHavingRead = false;
-    private bool event3Mod = false, event4Mod = false, event5Mod = false, event6Mod = false;
+    private bool waitingForHavingRead = false, waitingForEvent7Input = false;
+    private bool event3Mod = false, event4Mod = false, event5Mod = false, 
+                 event6Mod = false, event7Mod = false, event8Mod = false;
     private GameObject hEventIndOff, rEventIndOff, wEventIndOff, hEventIndOn, rEventIndOn, wEventIndOn;
+    private GameObject event7Select, event7UI;
+    private float[] event7SelectYPos = { 2f, .7f, -.6f };
+    private TMPro.TextMeshProUGUI[] event7EditTexts = new TMPro.TextMeshProUGUI[3];
+    private int[] rInHand = new int[4], rToDiscard = new int[4];
+    private int event7Selected = 0;
     private int endTurnToLower = 0, numLowered = 0;
 
     private int turnNumber = 1;
@@ -164,6 +170,19 @@ public class GameManager : MonoBehaviour
         rEventIndOn = GameObject.Find("Rad Event Indicator On");
         wEventIndOn = GameObject.Find("Water Event Indicator On");
 
+        event7Select = GameObject.Find("Event 7 Select");
+        event7UI = GameObject.Find("Event 7 UI");
+        event7Header = GameObject.Find("Event 7 Header").GetComponent<TMPro.TextMeshProUGUI>();
+        event7EditTexts[0] = GameObject.Find("Glucose 7 Text").GetComponent<TMPro.TextMeshProUGUI>();
+        event7EditTexts[1] = GameObject.Find("Phosphate 7 Text").GetComponent<TMPro.TextMeshProUGUI>();
+        event7EditTexts[2] = GameObject.Find("Base Pair 7 Text").GetComponent<TMPro.TextMeshProUGUI>();
+        useless7Text = GameObject.Find("Useless 7 Text").GetComponent<TMPro.TextMeshProUGUI>();
+        event7Header.color = new Color(1, 1, 1, 0);
+        event7EditTexts[0].color = new Color(1, 1, 1, 0);
+        event7EditTexts[1].color = new Color(1, 1, 1, 0);
+        event7EditTexts[2].color = new Color(1, 1, 1, 0);
+        useless7Text.color = new Color(1, 1, 1, 0);
+
         StartCoroutine(HideStuff());
     }
 
@@ -197,6 +216,9 @@ public class GameManager : MonoBehaviour
         hEventIndOn.SetActive(false);
         rEventIndOn.SetActive(false);
         wEventIndOn.SetActive(false);
+
+        event7Select.SetActive(false);
+        event7UI.SetActive(false);
     }
 
     // Update is called once per frame
@@ -212,7 +234,8 @@ public class GameManager : MonoBehaviour
                 eventContinue.color = new Color(1, 1, 1, 0);
                 InvokeRepeating("FadeOutEvent", 0, 1 / 60f);
             }
-            else if (controlScheme != 1 && !hasRead)
+            
+            if (controlScheme != 1 && !hasRead)
             {
                 Vector3 mousePos = Input.mousePosition;
                 if (Input.GetKeyDown(KeyCode.Mouse0) && mousePos.x > 756
@@ -224,9 +247,181 @@ public class GameManager : MonoBehaviour
                     InvokeRepeating("FadeOutEvent", 0, 1 / 60f);
                 }
             }
+            
             if (hasRead)
             {
                 waitingForHavingRead = false;
+                hasRead = false;
+            }
+        }
+
+        if (waitingForEvent7Input)
+        {
+            bool hasRead = false;
+            if (controlScheme != 0)
+            {
+                if (Input.GetKeyDown(playerController.GetSelectL()))
+                {
+                    if (event7Selected < 3)
+                    {
+                        if (rToDiscard[event7Selected + 1] > 0)
+                        {
+                            rToDiscard[event7Selected + 1]--;
+                            event7EditTexts[event7Selected].text = "" + rToDiscard[event7Selected + 1];
+                        }
+                    }
+                }
+                else if (Input.GetKeyDown(playerController.GetSelectR()))
+                {
+                    if (event7Selected < 3)
+                    {
+                        if (rToDiscard[event7Selected + 1] < rInHand[event7Selected + 1])
+                        {
+                            rToDiscard[event7Selected + 1]++;
+                            event7EditTexts[event7Selected].text = "" + rToDiscard[event7Selected + 1];
+                        }
+                    }
+                }
+                else if (Input.GetKeyDown(playerController.GetUseSelect()))
+                {
+                    if (event7Selected < 3)
+                    {
+                        event7Selected++;
+                        if (event7Selected < 3)
+                        {
+                            event7Select.transform.position = new Vector3(event7Select.transform.position.x,
+                                                                          event7SelectYPos[event7Selected],
+                                                                          event7Select.transform.position.z);
+                        }
+                        else
+                        {
+                            event7Select.SetActive(false);
+                            continueSelect.GetComponent<SpriteRenderer>().color = new Color(57f/255, 209f/255,
+                                                                                            1f/255, 1);
+                        }
+                    }
+                    else
+                    {
+                        hasRead = true;
+                    }
+                }
+                else if (Input.GetKeyDown(playerController.GetBack()))
+                {
+                    if (event7Selected == 3)
+                    {
+                        event7Selected--;
+                        event7Select.SetActive(true);
+                        event7Select.transform.position = new Vector3(event7Select.transform.position.x,
+                                                                          event7SelectYPos[event7Selected],
+                                                                          event7Select.transform.position.z);
+                        continueSelect.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 1);
+                    }
+                    else if (event7Selected > 0)
+                    {
+                        event7Selected--;
+                        event7Select.transform.position = new Vector3(event7Select.transform.position.x,
+                                                                          event7SelectYPos[event7Selected],
+                                                                          event7Select.transform.position.z);
+                    }
+                }
+            }
+            
+            if (controlScheme != 1 && Input.GetKeyDown(KeyCode.Mouse0) && !hasRead)
+            {
+                Vector3 mousePos = Input.mousePosition;
+
+                if (mousePos.x > 894 && mousePos.x < 969 && mousePos.y > 721 && mousePos.y < 794)
+                {
+                    if (rToDiscard[1] > 0)
+                    {
+                        rToDiscard[1]--;
+                        event7EditTexts[0].text = "" + rToDiscard[1];
+                    }
+                }
+
+                if (mousePos.x > 1112 && mousePos.x < 1185 && mousePos.y > 721 && mousePos.y < 794 )
+                {
+                    if (rToDiscard[1] < rInHand[1])
+                    {
+                        rToDiscard[1]++;
+                        event7EditTexts[0].text = "" + rToDiscard[1];
+                    }
+                }
+
+                if (mousePos.x > 894 && mousePos.x < 969 && mousePos.y > 580 && mousePos.y < 655)
+                {
+                    if (rToDiscard[2] > 0)
+                    {
+                        rToDiscard[2]--;
+                        event7EditTexts[1].text = "" + rToDiscard[2];
+                    }
+                }
+
+                if (mousePos.x > 1112 && mousePos.x < 1185 && mousePos.y > 580 && mousePos.y < 655)
+                {
+                    if (rToDiscard[2] < rInHand[2])
+                    {
+                        rToDiscard[2]++;
+                        event7EditTexts[1].text = "" + rToDiscard[2];
+                    }
+                }
+
+                if (mousePos.x > 894 && mousePos.x < 969 && mousePos.y > 440 && mousePos.y < 512)
+                {
+                    if (rToDiscard[3] > 0)
+                    {
+                        rToDiscard[3]--;
+                        event7EditTexts[2].text = "" + rToDiscard[3];
+                    }
+                }
+
+                if (mousePos.x > 1112 && mousePos.x < 1185 && mousePos.y > 440 && mousePos.y < 512)
+                {
+                    if (rToDiscard[3] < rInHand[3])
+                    {
+                        rToDiscard[3]++;
+                        event7EditTexts[2].text = "" + rToDiscard[3];
+                    }
+                }
+
+                if (mousePos.x > 756 && mousePos.x < 1161 && mousePos.y > 150 && mousePos.y < 284)
+                {
+                    hasRead = true;
+                }
+            }
+
+            if (hasRead)
+            {
+                waitingForEvent7Input = false;
+
+                int count = 0;
+                for (int i = 0; i < rToDiscard.Length; i++)
+                {
+                    for (int j = 0; j < rToDiscard[i]; j++)
+                    {
+                        ResourceManager.RemoveResource(i);
+                        count++;
+                    }
+                }
+
+                ResourceManager.Draw(count);
+
+                if (controlScheme != 0)
+                {
+                    continueSelect.GetComponent<SpriteRenderer>().color = new Color(57f / 255, 209f / 255,
+                                                                                            1f / 255, 1);
+                }
+                continueSelect.SetActive(false);
+                eventContinue.color = new Color(1, 1, 1, 0);
+                event7EditTexts[0].color = new Color(1, 1, 1, 0);
+                event7EditTexts[1].color = new Color(1, 1, 1, 0);
+                event7EditTexts[2].color = new Color(1, 1, 1, 0);
+                useless7Text.color = new Color(1, 1, 1, 0);
+                event7UI.SetActive(false);
+                event7Select.SetActive(false);
+
+                InvokeRepeating("FadeOutEvent7", 0, 1 / 60f);
+
                 hasRead = false;
             }
         }
@@ -235,6 +430,11 @@ public class GameManager : MonoBehaviour
     public void SetWaitingForEndTurnAnim1(bool waitIn)
     {
         waitingForEndTurnAnim1 = waitIn;
+    }
+
+    public bool GetEvent7Mod()
+    {
+        return event7Mod;
     }
 
     public void Event3()
@@ -257,6 +457,12 @@ public class GameManager : MonoBehaviour
     public void Event6()
     {
         event6Mod = true;
+        waitingForEndTurnAnim1 = false;
+    }
+
+    public void Event7()
+    {
+        event7Mod = true;
         waitingForEndTurnAnim1 = false;
     }
 
@@ -325,7 +531,11 @@ public class GameManager : MonoBehaviour
             else
             {
                 numLowered++;
-                if (numLowered < endTurnToLower)
+                if (event8Mod && numLowered < endTurnToLower)
+                {
+                    RaiseThermobar(1, new int[] { });
+                }
+                else if (numLowered < endTurnToLower)
                 {
                     RaiseThermobar(-1, new int[] { });
                 }
@@ -555,6 +765,10 @@ public class GameManager : MonoBehaviour
             rGainIndicators[1, indices[j]].GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
         }
         waitingForEndTurnAnim1 = false;
+        if (event7Mod && playerController.GetCurSpace() == 3 && !waitingForEndTurnAnim1)
+        {
+            InvokeRepeating("FadeInEvent7", 0, 1 / 60f);
+        }
     }
 
     public IEnumerator LoseResourceDisplay(int[] indices)
@@ -590,6 +804,78 @@ public class GameManager : MonoBehaviour
             rLossIndicators[indices[j]].GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
         }
         waitingForEndTurnAnim1 = false;
+    }
+
+    public void FadeInEvent7()
+    {
+        count++;
+        eventFade.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, count / 100f);
+        eventFrame.GetComponent<SpriteRenderer>().color = new Color(238f / 255, 238f / 255,
+                                                                    238f / 255, count / 60f);
+        eventWindow.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, count / 60f);
+        event7Header.color = new Color(1, 1, 1, count / 60f);
+        if (count == 60)
+        {
+            count = 0;
+            eventFade.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, .6f);
+            eventFrame.GetComponent<SpriteRenderer>().color = new Color(238f / 255, 238f / 255,
+                                                                        238f / 255, 1);
+            eventWindow.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 1);
+            event7Header.color = new Color(1, 1, 1, 1);
+            CancelInvoke();
+            StartCoroutine(LoadEvent7UI());
+        }
+    }
+
+    IEnumerator LoadEvent7UI()
+    {
+        yield return new WaitForSeconds(.5f);
+
+        continueSelect.SetActive(true);
+        continueSelect.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 1);
+        eventContinue.color = new Color(1, 1, 1, 1);
+        rInHand = ResourceManager.CountRInHand();
+        rToDiscard = new int[] { rInHand[0], 0, 0, 0 };
+        event7EditTexts[0].text = "0";
+        event7EditTexts[0].color = new Color(1, 1, 1, 1);
+        event7EditTexts[1].text = "0";
+        event7EditTexts[1].color = new Color(1, 1, 1, 1);
+        event7EditTexts[2].text = "0";
+        event7EditTexts[2].color = new Color(1, 1, 1, 1);
+        useless7Text.text = rInHand[0] + " Useless Minerals";
+        useless7Text.color = new Color(1, 1, 1, 1);
+        event7UI.SetActive(true);
+        if (controlScheme != 0)
+        {
+            event7Selected = 0;
+            event7Select.SetActive(true);
+            event7Select.transform.position = new Vector3(event7Select.transform.position.x,
+                                                          event7SelectYPos[0],
+                                                          event7Select.transform.position.z);
+        }
+        waitingForEvent7Input = true;
+    }
+
+    public void FadeOutEvent7()
+    {
+        count++;
+        eventFade.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, .6f - count / 100f);
+        eventFrame.GetComponent<SpriteRenderer>().color = new Color(238f / 255, 238f / 255,
+                                                                    238f / 255, 1 - count / 60f);
+        eventWindow.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 1 - count / 60f);
+        event7Header.color = new Color(1, 1, 1, 1 - count / 60f);
+        if (count == 60)
+        {
+            count = 0;
+            eventFade.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
+            eventFrame.GetComponent<SpriteRenderer>().color = new Color(238f / 255, 238f / 255,
+                                                                        238f / 255, 0);
+            eventWindow.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
+            event7Header.color = new Color(1, 1, 1, 0);
+            CancelInvoke();
+            UpdateHandDisplay();
+            playerController.SetWaitingForAnim(false);
+        }
     }
 
     public void EndTurnInit()
@@ -653,7 +939,14 @@ public class GameManager : MonoBehaviour
 
     IEnumerator LoadEventText()
     {
-        eventID = EventManager.PickEvent();
+        if (turnNumber != 7)
+        {
+            eventID = EventManager.PickEvent();
+        }
+        else
+        {
+            eventID = 8;
+        }
         if (eventID == 3)
         {
             hEventIndOff.SetActive(false);
@@ -708,7 +1001,15 @@ public class GameManager : MonoBehaviour
     public void EndTurnEvent()
     {
         waitingForEndTurnAnim1 = true;
-        EventManager.TriggerEvent(eventID);
+        if (eventID != 8)
+        {
+            EventManager.TriggerEvent(eventID);
+        }
+        else
+        {
+            event8Mod = true;
+            waitingForEndTurnAnim1 = false;
+        }
         InvokeRepeating("WaitForEndTurnEvent", 0, 1 / 60f);
     }
 
@@ -730,15 +1031,30 @@ public class GameManager : MonoBehaviour
     {
         BoardSpace curSpace = BoardManager.BOARDS[boardManager.GetBoardState(), playerController.GetCurSpace()];
         numLowered = 0;
-        if (CanRaiseTemp(curSpace.GetTempReduce() + (event3Mod ? 1 : 0) - (event6Mod ? 1 : 0)))
+        if (CanRaiseTemp(curSpace.GetTempReduce() + (event3Mod ? 1 : 0)
+                                                  - (event6Mod ? 1 : 0) 
+                                                  + (event8Mod ? 7 : 0)))
         {
-            endTurnToLower = -(curSpace.GetTempReduce() + (event3Mod ? 1 : 0) - (event6Mod ? 1 : 0));
+            endTurnToLower = -(curSpace.GetTempReduce() + (event3Mod ? 1 : 0)
+                                                        - (event6Mod ? 1 : 0)
+                                                        + (event8Mod ? 7 : 0));
+        }
+        else if (event8Mod)
+        {
+            endTurnToLower = thermoLevel - 12;
         }
         else
         {
             endTurnToLower = thermoLevel;
         }
-        if (numLowered < endTurnToLower)
+
+        if (endTurnToLower < 0)
+        {
+            waitingForEndTurnAnim2 = true;
+            endTurnToLower *= -1;
+            RaiseThermobar(1, new int[] { });
+        }
+        else if (numLowered < endTurnToLower)
         {
             waitingForEndTurnAnim2 = true;
             RaiseThermobar(-1, new int[] { });

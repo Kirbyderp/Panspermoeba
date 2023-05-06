@@ -8,11 +8,38 @@ public class ResourceManager
     private static List<Resource> playerHand;
     private static List<Resource> discardPile;
     private static GameManager gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
+    private static PlayerController playerController = GameObject.Find("Player Microbe")
+                                                                 .GetComponent<PlayerController>();
 
 
     public static List<Resource> GetPlayerHand()
     {
         return playerHand;
+    }
+
+    public static int[] CountRInHand()
+    {
+        int[] rInHand = { 0, 0, 0, 0 };
+        foreach (Resource r in playerHand)
+        {
+            if (r.ToString().Equals(Resource.TYPES[0]))
+            {
+                rInHand[0]++;
+            }
+            else if (r.ToString().Equals(Resource.TYPES[1]))
+            {
+                rInHand[1]++;
+            }
+            else if (r.ToString().Equals(Resource.TYPES[2]))
+            {
+                rInHand[2]++;
+            }
+            else if (r.ToString().Equals(Resource.TYPES[3]))
+            {
+                rInHand[3]++;
+            }
+        }
+        return rInHand;
     }
 
     public static void SetUpDeck()
@@ -47,6 +74,31 @@ public class ResourceManager
         }
     }
 
+    public static void Draw(int cardNum)
+    {
+        for (int i = 0; i < cardNum; i++)
+        {
+            if (resourceDeck.Count == 0 && discardPile.Count != 0)
+            {
+                ShuffleDeck();
+            }
+
+            if (resourceDeck.Count != 0)
+            {
+                int cardIndex = Random.Range(0, resourceDeck.Count);
+                if (resourceDeck[cardIndex].ToString().Equals(Resource.TYPES[0]))
+                {
+                    discardPile.Add(resourceDeck[cardIndex]);
+                }
+                else
+                {
+                    playerHand.Add(resourceDeck[cardIndex]);
+                }
+                resourceDeck.RemoveAt(cardIndex);
+            }
+        }
+    }
+
     public static int[] Scavenge(int cardNum, int curSpace)
     {
         int gCount = 0, pCount = 0, bCount = 0;
@@ -62,7 +114,14 @@ public class ResourceManager
                 int cardIndex = Random.Range(0, resourceDeck.Count);
                 if (resourceDeck[cardIndex].ToString().Equals(Resource.TYPES[0]))
                 {
-                    discardPile.Add(resourceDeck[cardIndex]);
+                    if (gameManager.GetEvent7Mod() && playerController.GetCurSpace() == 3)
+                    {
+                        playerHand.Add(resourceDeck[cardIndex]);
+                    }
+                    else
+                    {
+                        discardPile.Add(resourceDeck[cardIndex]);
+                    }
                 }
                 else
                 {
@@ -281,6 +340,19 @@ public class ResourceManager
         foreach (Resource r in playerHand)
         {
             if (r.ToString().Equals(Resource.TYPES[1]))
+            {
+                discardPile.Add(r);
+                playerHand.Remove(r);
+                break;
+            }
+        }
+    }
+
+    public static void RemoveResource(int rType)
+    {
+        foreach (Resource r in playerHand)
+        {
+            if (r.ToString().Equals(Resource.TYPES[rType]))
             {
                 discardPile.Add(r);
                 playerHand.Remove(r);
