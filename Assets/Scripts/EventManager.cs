@@ -54,6 +54,7 @@ public class EventManager
 
     public static int PickEvent()
     {
+        return 5;
         int initIndex = Random.Range(0, 7);
         int index = initIndex;
         bool pickedEvent = false, hitZero = false;

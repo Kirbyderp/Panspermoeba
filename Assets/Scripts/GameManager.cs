@@ -53,6 +53,16 @@ public class GameManager : MonoBehaviour
     private int event7Selected = 0;
     private int endTurnToLower = 0, numLowered = 0;
 
+    private SpriteRenderer heatVignette, coldVignette, radVignette, standardVignette, gameOverBackground;
+    private int deathType = -1; //0 == standard, 1 == cold, 2 == heat, 3 == rad, 4 == victory
+    private string[] deathText = {"You ran out of energy to keep yourself alive",
+                                  "You froze to death",
+                                  "Your proteins denatured from overheating",
+                                  "Your DNA has been irreparably damaged",
+                                  "Congratulations, you've survived your journey!"};
+    private TMPro.TextMeshProUGUI gameOver, deathReason, scoreText, playAgain, titleScreen;
+    private GameObject playAgainSelect, titleScreenSelect;
+
     private int turnNumber = 1;
     private int controlScheme = 2; //0 == mouse only, 1 == keyboard only, 2 == both
 
@@ -183,6 +193,31 @@ public class GameManager : MonoBehaviour
         event7EditTexts[2].color = new Color(1, 1, 1, 0);
         useless7Text.color = new Color(1, 1, 1, 0);
 
+        coldVignette = GameObject.Find("Cold Death Vignette").GetComponent<SpriteRenderer>();
+        coldVignette.color = new Color(1, 1, 1, 0);
+        heatVignette = GameObject.Find("Heat Death Vignette").GetComponent<SpriteRenderer>();
+        heatVignette.color = new Color(1, 1, 1, 0);
+        radVignette = GameObject.Find("Rad Death Vignette").GetComponent<SpriteRenderer>();
+        radVignette.color = new Color(1, 1, 1, 0);
+        standardVignette = GameObject.Find("Standard Death Vignette").GetComponent<SpriteRenderer>();
+        standardVignette.color = new Color(1, 1, 1, 0);
+
+        gameOverBackground = GameObject.Find("Game Over Background").GetComponent<SpriteRenderer>();
+        gameOverBackground.color = new Color(0, 0, 0, 0);
+        playAgainSelect = GameObject.Find("Play Again Select");
+        titleScreenSelect = GameObject.Find("Title Screen Select");
+
+        gameOver = GameObject.Find("Game Over").GetComponent<TMPro.TextMeshProUGUI>();
+        gameOver.color = new Color(1, 1, 1, 0);
+        deathReason = GameObject.Find("Death Reason").GetComponent<TMPro.TextMeshProUGUI>();
+        deathReason.color = new Color(1, 1, 1, 0);
+        scoreText = GameObject.Find("Score Text").GetComponent<TMPro.TextMeshProUGUI>();
+        scoreText.color = new Color(1, 1, 1, 0);
+        playAgain = GameObject.Find("Play Again").GetComponent<TMPro.TextMeshProUGUI>();
+        playAgain.color = new Color(1, 1, 1, 0);
+        titleScreen = GameObject.Find("Title Screen").GetComponent<TMPro.TextMeshProUGUI>();
+        titleScreen.color = new Color(1, 1, 1, 0);
+
         StartCoroutine(HideStuff());
     }
 
@@ -219,6 +254,9 @@ public class GameManager : MonoBehaviour
 
         event7Select.SetActive(false);
         event7UI.SetActive(false);
+
+        playAgainSelect.SetActive(false);
+        titleScreenSelect.SetActive(false);
     }
 
     // Update is called once per frame
@@ -549,7 +587,7 @@ public class GameManager : MonoBehaviour
 
     public bool CanRaiseGene(int numSteps)
     {
-        return (radiLevel + numSteps) > 0 && (radiLevel + numSteps) < 11;
+        return (radiLevel + numSteps) >= 0 && (radiLevel + numSteps) < 11;
     }
 
     public void RaiseRadibar(int numSteps, int[] indices)
@@ -568,6 +606,10 @@ public class GameManager : MonoBehaviour
         Vector3 sVel = new Vector3(0, (radiS[endLevel] - radiS[radiLevel]) / 30, 0);
         radibar.transform.localPosition += yVel;
         radibar.transform.localScale += sVel;
+        if (endLevel == 0)
+        {
+            radVignette.color = new Color(1, 1, 1, count / 60f);
+        }
         count++;
         if (count == 30)
         {
@@ -580,7 +622,16 @@ public class GameManager : MonoBehaviour
                                                        radibar.transform.localScale.z);
             radiLevel = endLevel;
             CancelInvoke();
-            if (!waitingForEndTurnAnim1 && !waitingForEndTurnAnim2)
+            if (radiLevel == 0)
+            {
+                radVignette.color = new Color(1, 1, 1, .5f);
+                deathType = 3;
+                waitingForEndTurnAnim1 = true;
+                waitingForEndTurnAnim2 = true;
+                playerController.SetWaitingForAnim(true);
+                InvokeRepeating("FinishDeathAnim", 0, 1 / 60f);
+            }
+            else if (!waitingForEndTurnAnim1 && !waitingForEndTurnAnim2)
             {
                 playerController.SetWaitingForAnim(false);
             }
@@ -1147,5 +1198,59 @@ public class GameManager : MonoBehaviour
             playerController.SetActionNum(1);
         }
         playerController.SetWaitingForAnim(false);
+    }
+
+    private void FinishDeathAnim()
+    {
+        switch (deathType)
+        {
+            case 0:
+                standardVignette.color = new Color(1, 1, 1, .5f + count / 60f);
+                break;
+            case 1:
+                coldVignette.color = new Color(1, 1, 1, .5f + count / 60f);
+                break;
+            case 2:
+                heatVignette.color = new Color(1, 1, 1, .5f + count / 60f);
+                break;
+            case 3:
+                radVignette.color = new Color(1, 1, 1, .5f + count / 60f);
+                break;
+        }
+        count++;
+        if (count == 30)
+        {
+            count = 0;
+            switch (deathType)
+            {
+                case 0:
+                    standardVignette.color = new Color(1, 1, 1, 1);
+                    break;
+                case 1:
+                    coldVignette.color = new Color(1, 1, 1, 1);
+                    break;
+                case 2:
+                    heatVignette.color = new Color(1, 1, 1, 1);
+                    break;
+                case 3:
+                    radVignette.color = new Color(1, 1, 1, 1);
+                    break;
+            }
+            CancelInvoke();
+            InvokeRepeating("FadeInGameOver", .3f, 1 / 60f);
+        }
+    }
+
+    private void FadeInGameOver()
+    {
+        gameOverBackground.color = new Color(0, 0, 0, count / 60f);
+        count++;
+        if (count == 60)
+        {
+            count = 0;
+            gameOverBackground.color = new Color(0, 0, 0, 1);
+            CancelInvoke();
+            
+        }
     }
 }
