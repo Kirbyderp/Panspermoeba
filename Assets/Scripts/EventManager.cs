@@ -38,9 +38,8 @@ public class EventManager
                                                    "A water pocket has been found in the center " +
                                                      "of the asteroid. Once per action, whenever " +
                                                      "you scavenge for resources in the center " +
-                                                     "tile, you can discard any number of cards " +
-                                                     "from your hand and draw that many from the " +
-                                                     "deck.",
+                                                     "tile, you can discard any number of" +
+                                                     "your stored resources to get that many back.",
                                                    "Your asteroid is entering the destination " +
                                                      "planet! During the upkeep phase, treat all " +
                                                      "temperature changes as if they are +7T " +
@@ -54,7 +53,6 @@ public class EventManager
 
     public static int PickEvent()
     {
-        return 5;
         int initIndex = Random.Range(0, 7);
         int index = initIndex;
         bool pickedEvent = false, hitZero = false;

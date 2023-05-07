@@ -12,8 +12,10 @@ public class PlayerController : MonoBehaviour
     private bool waitingForAnim = false;
     private bool inInfoPage = false;
     private GameManager gameManager;
-    private bool[] selectedButtons = {false, false, false, false, false, false, false};
+    private ScoreManager scoreManager;
+    private bool[] selectedButtons = {false, false, false, false, false, false, false, false};
     private int actionNum = 1;
+    private bool isNextActionFree = false;
     private int controlScheme = 2; //0 == mouse only, 1 == keyboard only, 2 == both
     
     private GameObject kButtonSelector;
@@ -37,15 +39,18 @@ public class PlayerController : MonoBehaviour
     KeyCode moveD = KeyCode.S;
     KeyCode moveR = KeyCode.D;
 
-    KeyCode selectL = KeyCode.H;
-    KeyCode selectR = KeyCode.J;
-    KeyCode useSelect = KeyCode.K;
+    KeyCode selectL = KeyCode.J;
+    KeyCode selectR = KeyCode.K;
+    KeyCode useSelect = KeyCode.Return;
 
     // Start is called before the first frame update
     void Start()
     {
+        controlScheme = PlayerPrefs.GetInt("Control Scheme");
+
         board = GameObject.Find("Game Board").GetComponent<BoardManager>();
         gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
+        scoreManager = GameObject.Find("Score Manager").GetComponent<ScoreManager>();
         curXPos = board.transform.position.x;
         curYPos = board.transform.position.y;
         kButtonSelector = GameObject.Find("Keyboard Action Selection");
@@ -62,6 +67,18 @@ public class PlayerController : MonoBehaviour
         {
             LookForKeyboardMoveInput();
             LookForKeyboardSelectInput();
+            if (Input.GetKeyDown(back) && !waitingForAnim)
+            {
+                if (inInfoPage)
+                {
+                    gameManager.HideInfoScreen();
+                    inInfoPage = false;
+                }
+                else
+                {
+                    gameManager.ToTitleScreen();
+                }
+            }
         }
         
         if (controlScheme != 1)
@@ -93,13 +110,15 @@ public class PlayerController : MonoBehaviour
                 waitingForAnim = true;
                 ResourceManager.RaiseTemp();
                 gameManager.UpdateHandDisplay();
-                gameManager.RaiseThermobar(1, new int[] {0});
+                scoreManager.RaiseTemp();
+                gameManager.RaiseThermobar(1, new int[] {0}, false);
             }
             else if (Input.GetKeyDown(KeyCode.G) && ResourceManager.CanRaiseGene(0) && gameManager.CanRaiseGene(1))
             {
                 waitingForAnim = true;
                 ResourceManager.RaiseGene();
                 gameManager.UpdateHandDisplay();
+                scoreManager.RaiseGene();
                 gameManager.RaiseRadibar(1, new int[] {0, 3, 6});
             }
         }
@@ -148,6 +167,13 @@ public class PlayerController : MonoBehaviour
     public void SetActionNum(int actIn)
     {
         actionNum = actIn;
+    }
+
+    public void NextActionIsFree()
+    {
+        Debug.Log("NextActionIsFree");
+        isNextActionFree = true;
+        actionNum--;
     }
 
     public KeyCode GetSelectL()
@@ -220,12 +246,17 @@ public class PlayerController : MonoBehaviour
     {
         if (board.GetBoardState() % 2 == 1 && !waitingForAnim && !inInfoPage &&
             (actionNum < 5 || (actionNum == 5 && ResourceManager.HasGlucose(1))
-                             || (actionNum == 6 && ResourceManager.HasGlucose(2))))
+                           || (actionNum == 6 && ResourceManager.HasGlucose(2))
+                           || isNextActionFree))
         {
             if (Input.GetKey(moveR))
             {
                 if (CanMove(0, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
+                    if (isNextActionFree)
+                    {
+                        isNextActionFree = false;
+                    }
                     waitingForAnim = true;
                     int spaceID = BoardManager.BOARDS[board.GetBoardState(), curSpace].GetAdjs()
                                   [IndexOfDir(0, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs())];
@@ -253,6 +284,10 @@ public class PlayerController : MonoBehaviour
             {
                 if (CanMove(2, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
+                    if (isNextActionFree)
+                    {
+                        isNextActionFree = false;
+                    }
                     waitingForAnim = true;
                     int spaceID = BoardManager.BOARDS[board.GetBoardState(), curSpace].GetAdjs()
                                   [IndexOfDir(2, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs())];
@@ -280,6 +315,10 @@ public class PlayerController : MonoBehaviour
             {
                 if (CanMove(4, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
+                    if (isNextActionFree)
+                    {
+                        isNextActionFree = false;
+                    }
                     waitingForAnim = true;
                     int spaceID = BoardManager.BOARDS[board.GetBoardState(), curSpace].GetAdjs()
                                   [IndexOfDir(4, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs())];
@@ -307,6 +346,10 @@ public class PlayerController : MonoBehaviour
             {
                 if (CanMove(6, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
+                    if (isNextActionFree)
+                    {
+                        isNextActionFree = false;
+                    }
                     waitingForAnim = true;
                     int spaceID = BoardManager.BOARDS[board.GetBoardState(), curSpace].GetAdjs()
                                   [IndexOfDir(6, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs())];
@@ -333,12 +376,17 @@ public class PlayerController : MonoBehaviour
         }
         else if (board.GetBoardState() % 2 == 0 && !waitingForAnim && !inInfoPage &&
                  (actionNum < 5 || (actionNum == 5 && ResourceManager.HasGlucose(1))
-                                  || (actionNum == 6 && ResourceManager.HasGlucose(2))))
+                                || (actionNum == 6 && ResourceManager.HasGlucose(2))
+                                || isNextActionFree))
         {
             if (Input.GetKey(moveR) && Input.GetKey(moveU))
             {
                 if (CanMove(1, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
+                    if (isNextActionFree)
+                    {
+                        isNextActionFree = false;
+                    }
                     waitingForAnim = true;
                     int spaceID = BoardManager.BOARDS[board.GetBoardState(), curSpace].GetAdjs()
                                   [IndexOfDir(1, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs())];
@@ -366,6 +414,10 @@ public class PlayerController : MonoBehaviour
             {
                 if (CanMove(3, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
+                    if (isNextActionFree)
+                    {
+                        isNextActionFree = false;
+                    }
                     waitingForAnim = true;
                     int spaceID = BoardManager.BOARDS[board.GetBoardState(), curSpace].GetAdjs()
                                   [IndexOfDir(3, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs())];
@@ -393,6 +445,10 @@ public class PlayerController : MonoBehaviour
             {
                 if (CanMove(5, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
+                    if (isNextActionFree)
+                    {
+                        isNextActionFree = false;
+                    }
                     waitingForAnim = true;
                     int spaceID = BoardManager.BOARDS[board.GetBoardState(), curSpace].GetAdjs()
                                   [IndexOfDir(5, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs())];
@@ -420,6 +476,10 @@ public class PlayerController : MonoBehaviour
             {
                 if (CanMove(7, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs()))
                 {
+                    if (isNextActionFree)
+                    {
+                        isNextActionFree = false;
+                    }
                     waitingForAnim = true;
                     int spaceID = BoardManager.BOARDS[board.GetBoardState(), curSpace].GetAdjs()
                                   [IndexOfDir(7, BoardManager.BOARDS[board.GetBoardState(), curSpace].GetDirs())];
@@ -670,6 +730,17 @@ public class PlayerController : MonoBehaviour
                 gameManager.DeselectInfoButton(1);
                 selectedButtons[6] = false;
             }
+        }
+        
+        if (mousePos.x > 293 && mousePos.x < 399 && mousePos.y > 938 && mousePos.y < 1047)
+        {
+            gameManager.SelectToTitle();
+            selectedButtons[7] = true;
+        }
+        else if (selectedButtons[7])
+        {
+            gameManager.DeselectToTitle();
+            selectedButtons[7] = false;
         }
     }
 
@@ -1047,33 +1118,57 @@ public class PlayerController : MonoBehaviour
             }
         }
 
+        if (mousePos.x > 293 && mousePos.x < 399 && mousePos.y > 938 && mousePos.y < 1047)
+        {
+            return 20;
+        }
+
         return -1;
     }
 
     private void PerformAction(int index)
     {
-        if (actionNum < 5)
+        if (index == 20 && !inInfoPage)
+        {
+            gameManager.ToTitleScreen();
+            return;
+        }
+        if (actionNum < 5 || isNextActionFree)
         {
             if (index != -1 && !inInfoPage)
             {
                 if (index == 0 && ResourceManager.CanRaiseTemp(0) && gameManager.CanRaiseTemp(1))
                 {
+                    if (isNextActionFree)
+                    {
+                        isNextActionFree = false;
+                    }
                     waitingForAnim = true;
                     ResourceManager.RaiseTemp();
                     gameManager.UpdateHandDisplay();
                     actionNum++;
-                    gameManager.RaiseThermobar(1, new int[] {0});
+                    scoreManager.RaiseTemp();
+                    gameManager.RaiseThermobar(1, new int[] {0}, true);
                 }
                 else if (index == 1 && ResourceManager.CanRaiseGene(0) && gameManager.CanRaiseGene(1))
                 {
+                    if (isNextActionFree)
+                    {
+                        isNextActionFree = false;
+                    }
                     waitingForAnim = true;
                     ResourceManager.RaiseGene();
                     gameManager.UpdateHandDisplay();
                     actionNum++;
+                    scoreManager.RaiseGene();
                     gameManager.RaiseRadibar(1, new int[] { 0, 3, 6 });
                 }
                 else if (index == 2)
                 {
+                    if (isNextActionFree)
+                    {
+                        isNextActionFree = false;
+                    }
                     waitingForAnim = true;
                     int[] indices = ResourceManager.Scavenge(BoardManager.BOARDS[board.GetBoardState(),
                                                              curSpace].GetScavAmt(), curSpace);
@@ -1092,6 +1187,10 @@ public class PlayerController : MonoBehaviour
                 }
                 else if (index == 4)
                 {
+                    if (isNextActionFree)
+                    {
+                        isNextActionFree = false;
+                    }
                     waitingForAnim = true;
                     gameManager.EndTurnInit();
                 }
@@ -1099,6 +1198,10 @@ public class PlayerController : MonoBehaviour
                 { 
                     if (CanMove(index % 10))
                     {
+                        if (isNextActionFree)
+                        {
+                            isNextActionFree = false;
+                        }
                         waitingForAnim = true;
                         nextSpace = index % 10;
                         nextXPos = BoardManager.BOARDS[board.GetBoardState(), index % 10].GetXPos() +
@@ -1138,7 +1241,8 @@ public class PlayerController : MonoBehaviour
                     ResourceManager.RemoveGlucose();
                     gameManager.UpdateHandDisplay();
                     actionNum++;
-                    gameManager.RaiseThermobar(1, new int[] { 0, 1 });
+                    scoreManager.RaiseTemp();
+                    gameManager.RaiseThermobar(1, new int[] { 0, 1 }, true);
                 }
                 else if (index == 1 && ResourceManager.CanRaiseGene(1) && gameManager.CanRaiseGene(1))
                 {
@@ -1147,6 +1251,7 @@ public class PlayerController : MonoBehaviour
                     ResourceManager.RemoveGlucose();
                     gameManager.UpdateHandDisplay();
                     actionNum++;
+                    scoreManager.RaiseGene();
                     gameManager.RaiseRadibar(1, new int[] { 0, 1, 3, 6 });
                 }
                 else if (index == 2 && ResourceManager.HasGlucose(1))
@@ -1224,7 +1329,8 @@ public class PlayerController : MonoBehaviour
                     ResourceManager.RemoveGlucose();
                     gameManager.UpdateHandDisplay();
                     actionNum++;
-                    gameManager.RaiseThermobar(1, new int[] { 0, 1, 2 });
+                    scoreManager.RaiseTemp();
+                    gameManager.RaiseThermobar(1, new int[] { 0, 1, 2 }, true);
                 }
                 else if (index == 1 && ResourceManager.CanRaiseGene(2) && gameManager.CanRaiseGene(1))
                 {
@@ -1234,6 +1340,7 @@ public class PlayerController : MonoBehaviour
                     ResourceManager.RemoveGlucose();
                     gameManager.UpdateHandDisplay();
                     actionNum++;
+                    scoreManager.RaiseGene();
                     gameManager.RaiseRadibar(1, new int[] { 0, 1, 2, 3, 6 });
                 }
                 else if (index == 2 && ResourceManager.HasGlucose(2))

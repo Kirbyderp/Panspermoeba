@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -18,10 +19,11 @@ public class GameManager : MonoBehaviour
                                        -1.475f, -1.155f, -0.835f, -0.515f, -0.195f}, //.32 diff
                              radiS = { .38f, 1.02f, 1.66f, 2.3f, 2.94f, 3.58f,
                                        4.22f, 4.86f, 5.5f, 6.14f, 6.78f}; //.64 diff
-    private int thermoLevel = 0, radiLevel = 0, endLevel = 0, count = 0;
+    private int thermoLevel = 11, radiLevel = 10, endLevel = 0, count = 0;
 
     private PlayerController playerController;
     private BoardManager boardManager;
+    private ScoreManager scoreManager;
 
     private SpriteRenderer playerMicrobe;
     private GameObject scavAmtIndicatorToggle;
@@ -29,6 +31,7 @@ public class GameManager : MonoBehaviour
 
     private GameObject[] actionButtonsDeselected = new GameObject[5],
                          actionButtonsSelected = new GameObject[5];
+    private GameObject toTitleD, toTitleS;
     
     private GameObject infoScreen, infoPage1, infoPage2;
     private GameObject[] infoButtonsDeselected = new GameObject[2],
@@ -39,6 +42,7 @@ public class GameManager : MonoBehaviour
     private int activePage = 1;
 
     private bool waitingForEndTurnAnim1 = false, waitingForEndTurnAnim2 = false;
+    private int cantSpendToLower = 0;
     private GameObject eventFade, eventFrame, eventWindow, continueSelect;
     private TMPro.TextMeshProUGUI eventHeader, eventText, eventContinue, event7Header, useless7Text;
     private int eventID = -1;
@@ -55,13 +59,24 @@ public class GameManager : MonoBehaviour
 
     private SpriteRenderer heatVignette, coldVignette, radVignette, standardVignette, gameOverBackground;
     private int deathType = -1; //0 == standard, 1 == cold, 2 == heat, 3 == rad, 4 == victory
-    private string[] deathText = {"You ran out of energy to keep yourself alive",
-                                  "You froze to death",
-                                  "Your proteins denatured from overheating",
-                                  "Your DNA has been irreparably damaged",
+    private string[] deathText = {"You ran out of energy to keep yourself alive.",
+                                  "You froze to death.",
+                                  "Your proteins denatured from overheating.",
+                                  "Your DNA has been irreparably damaged.",
                                   "Congratulations, you've survived your journey!"};
-    private TMPro.TextMeshProUGUI gameOver, deathReason, scoreText, playAgain, titleScreen;
+    private TMPro.TextMeshProUGUI gameOver, deathReason, scoreText, playAgain,
+                                  titleScreen, newHighScore, enterInitials, highScoresHeader;
     private GameObject playAgainSelect, titleScreenSelect;
+    private SpriteRenderer gameOverFrame, gameOverWindow;
+    private TMPro.TextMeshProUGUI[] initialsText = new TMPro.TextMeshProUGUI[3],
+                                    highScores = new TMPro.TextMeshProUGUI[10];
+    private char[] initials = { 'A', 'A', 'A' };
+    private SpriteRenderer[] initialFrames = new SpriteRenderer[4],
+                             initialWindows = new SpriteRenderer[4],
+                             initialTris = new SpriteRenderer[7];
+    private bool waitingForInitialsInput = false, isNewHighScore = false;
+    int selectedInitial = 0, scoreIndex = -1;
+    private bool waitingForGameEndInput = false, selectedPlayAgain = false;
 
     private int turnNumber = 1;
     private int controlScheme = 2; //0 == mouse only, 1 == keyboard only, 2 == both
@@ -69,6 +84,8 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        controlScheme = PlayerPrefs.GetInt("Control Scheme");
+
         thermobar = GameObject.Find("Thermobar");
         radibar = GameObject.Find("Radibar");
 
@@ -116,6 +133,7 @@ public class GameManager : MonoBehaviour
 
         playerController = GameObject.Find("Player Microbe").GetComponent<PlayerController>();
         boardManager = GameObject.Find("Game Board").GetComponent<BoardManager>();
+        scoreManager = GameObject.Find("Score Manager").GetComponent<ScoreManager>();
 
         playerMicrobe = GameObject.Find("Player Microbe").GetComponent<SpriteRenderer>();
         scavAmtIndicatorToggle = GameObject.Find("ScavAmt Indicators");
@@ -133,12 +151,14 @@ public class GameManager : MonoBehaviour
         actionButtonsDeselected[2] = GameObject.Find("Scavenge Button D");
         actionButtonsDeselected[3] = GameObject.Find("Info Page Button D");
         actionButtonsDeselected[4] = GameObject.Find("End Turn Button D");
+        toTitleD = GameObject.Find("Back Button D");
 
         actionButtonsSelected[0] = GameObject.Find("Raise Temp Button S");
         actionButtonsSelected[1] = GameObject.Find("Raise Gene Button S");
         actionButtonsSelected[2] = GameObject.Find("Scavenge Button S");
         actionButtonsSelected[3] = GameObject.Find("Info Page Button S");
         actionButtonsSelected[4] = GameObject.Find("End Turn Button S");
+        toTitleS = GameObject.Find("Back Button S");
 
         infoScreen = GameObject.Find("Info Screen");
         infoPage1 = GameObject.Find("Info Page 1");
@@ -217,6 +237,42 @@ public class GameManager : MonoBehaviour
         playAgain.color = new Color(1, 1, 1, 0);
         titleScreen = GameObject.Find("Title Screen").GetComponent<TMPro.TextMeshProUGUI>();
         titleScreen.color = new Color(1, 1, 1, 0);
+        newHighScore = GameObject.Find("New High Score").GetComponent<TMPro.TextMeshProUGUI>();
+        newHighScore.color = new Color(1, 1, 1, 0);
+        enterInitials = GameObject.Find("Enter Initials").GetComponent<TMPro.TextMeshProUGUI>();
+        enterInitials.color = new Color(1, 1, 1, 0);
+        for (int i = 0; i < initialsText.Length; i++)
+        {
+            initialsText[i] = GameObject.Find("Initial " + i).GetComponent<TMPro.TextMeshProUGUI>();
+            initialsText[i].color = new Color(1, 1, 1, 0);
+        }
+        for (int i = 0; i < initialFrames.Length; i++)
+        {
+            initialFrames[i] = GameObject.Find("Initial " + i + " Frame").GetComponent<SpriteRenderer>();
+            initialFrames[i].color = new Color(1, 1, 1, 0);
+        }
+        for (int i = 0; i < initialWindows.Length; i++)
+        {
+            initialWindows[i] = GameObject.Find("Initial " + i + " Window").GetComponent<SpriteRenderer>();
+            initialWindows[i].color = new Color(0, 0, 0, 0);
+        }
+        for (int i = 0; i < initialTris.Length; i++)
+        {
+            initialTris[i] = GameObject.Find("Initial Tri " + i).GetComponent<SpriteRenderer>();
+            initialTris[i].color = new Color(1, 1, 1, 0);
+        }
+        highScoresHeader = GameObject.Find("High Scores Header").GetComponent<TMPro.TextMeshProUGUI>();
+        highScoresHeader.color = new Color(1, 1, 1, 0);
+        for (int i = 0; i < highScores.Length; i++)
+        {
+            highScores[i] = GameObject.Find("High Score " + i).GetComponent<TMPro.TextMeshProUGUI>();
+            highScores[i].color = new Color(1, 1, 1, 0);
+        }
+
+        gameOverFrame = GameObject.Find("Game Over Frame").GetComponent<SpriteRenderer>();
+        gameOverFrame.color = new Color(1, 1, 1, 0);
+        gameOverWindow = GameObject.Find("Game Over Window").GetComponent<SpriteRenderer>();
+        gameOverWindow.color = new Color(0, 0, 0, 0);
 
         StartCoroutine(HideStuff());
     }
@@ -235,6 +291,7 @@ public class GameManager : MonoBehaviour
             actionButtonsSelected[0].SetActive(true);
             actionButtonsDeselected[0].SetActive(false);
         }
+        toTitleS.SetActive(false);
 
         foreach (GameObject eventX in eventXs)
         {
@@ -463,6 +520,212 @@ public class GameManager : MonoBehaviour
                 hasRead = false;
             }
         }
+
+        if (waitingForInitialsInput)
+        {
+            bool hasRead = false;
+            if (controlScheme != 0)
+            {
+                if (Input.GetKeyDown(playerController.GetSelectL()))
+                {
+                    if (selectedInitial < 3)
+                    {
+                        initials[selectedInitial]--;
+                        if (initials[selectedInitial] < 65)
+                        {
+                            initials[selectedInitial] = 'Z';
+                        }
+                        initialsText[selectedInitial].text = initials[selectedInitial] + "";
+                    }
+                }
+
+                if (Input.GetKeyDown(playerController.GetSelectR()))
+                {
+                    if (selectedInitial < 3)
+                    {
+                        initials[selectedInitial]++;
+                        if (initials[selectedInitial] > 90)
+                        {
+                            initials[selectedInitial] = 'A';
+                        }
+                        initialsText[selectedInitial].text = initials[selectedInitial] + "";
+                    }
+                }
+
+                if (Input.GetKeyDown(playerController.GetUseSelect()))
+                {
+                    if (selectedInitial < 3)
+                    {
+                        initialFrames[selectedInitial].color = new Color(1, 1, 1, 1);
+                        selectedInitial++;
+                        initialFrames[selectedInitial].color = new Color(57f / 255, 209f / 255, 1f / 255, 1);
+                    }
+                    else if (selectedInitial == 3)
+                    {
+                        hasRead = true;
+                    }
+                }
+
+                if (Input.GetKeyDown(playerController.GetBack()))
+                {
+                    if (selectedInitial > 0)
+                    {
+                        initialFrames[selectedInitial].color = new Color(1, 1, 1, 1);
+                        selectedInitial--;
+                        initialFrames[selectedInitial].color = new Color(57f / 255, 209f / 255, 1f / 255, 1);
+                    }
+                }
+            }
+
+            if (controlScheme != 1 && Input.GetKeyDown(KeyCode.Mouse0) && !hasRead)
+            {
+                Vector3 mousePos = Input.mousePosition;
+
+                if (mousePos.x > 1123 && mousePos.x < 1231 && mousePos.y > 518 && mousePos.y < 582)
+                {
+                    initials[0]--;
+                    if (initials[0] < 65)
+                    {
+                        initials[0] = 'Z';
+                    }
+                    initialsText[0].text = initials[0] + "";
+                }
+
+                if (mousePos.x > 1123 && mousePos.x < 1231 && mousePos.y > 281 && mousePos.y < 344)
+                {
+                    initials[0]++;
+                    if (initials[0] > 90)
+                    {
+                        initials[0] = 'A';
+                    }
+                    initialsText[0].text = initials[0] + "";
+                }
+
+                if (mousePos.x > 1285 && mousePos.x < 1392 && mousePos.y > 518 && mousePos.y < 582)
+                {
+                    initials[1]--;
+                    if (initials[1] < 65)
+                    {
+                        initials[1] = 'Z';
+                    }
+                    initialsText[1].text = initials[1] + "";
+                }
+
+                if (mousePos.x > 1285 && mousePos.x < 1392 && mousePos.y > 281 && mousePos.y < 344)
+                {
+                    initials[1]++;
+                    if (initials[1] > 90)
+                    {
+                        initials[1] = 'A';
+                    }
+                    initialsText[1].text = initials[1] + "";
+                }
+
+                if (mousePos.x > 1446 && mousePos.x < 1554 && mousePos.y > 518 && mousePos.y < 582)
+                {
+                    initials[2]--;
+                    if (initials[2] < 65)
+                    {
+                        initials[2] = 'Z';
+                    }
+                    initialsText[2].text = initials[2] + "";
+                }
+
+                if (mousePos.x > 1446 && mousePos.x < 1554 && mousePos.y > 281 && mousePos.y < 344)
+                {
+                    initials[2]++;
+                    if (initials[2] > 90)
+                    {
+                        initials[2] = 'A';
+                    }
+                    initialsText[2].text = initials[2] + "";
+                }
+
+                if (mousePos.x > 1610 && mousePos.x < 1713 && mousePos.y > 379 && mousePos.y < 484)
+                {
+                    hasRead = true;
+                }
+            }
+
+            if (hasRead)
+            {
+                hasRead = false;
+                waitingForInitialsInput = false;
+            }
+        }
+
+        if (waitingForGameEndInput)
+        {
+            bool hasRead = true;
+            if (controlScheme != 0)
+            {
+                if (Input.GetKeyDown(playerController.GetSelectL()))
+                {
+                    if (!selectedPlayAgain)
+                    {
+                        selectedPlayAgain = true;
+                        playAgainSelect.GetComponent<SpriteRenderer>().color = new Color(57f / 255,
+                                                                                         209f / 255,
+                                                                                         1f / 255);
+                        titleScreenSelect.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1);
+                    }
+                }
+
+                if (Input.GetKeyDown(playerController.GetSelectR()))
+                {
+                    if (selectedPlayAgain)
+                    {
+                        selectedPlayAgain = false;
+                        titleScreenSelect.GetComponent<SpriteRenderer>().color = new Color(57f / 255,
+                                                                                           209f / 255,
+                                                                                           1f / 255);
+                        playAgainSelect.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1);
+                    }
+                }
+
+                if (Input.GetKeyDown(playerController.GetUseSelect()))
+                {
+                    if (selectedPlayAgain)
+                    {
+                        PlayAgain();
+                    }
+                    else
+                    {
+                        ToTitleScreen();
+                    }
+                    hasRead = true;
+                }
+
+                if (Input.GetKeyDown(playerController.GetBack()))
+                {
+                    ToTitleScreen();
+                    hasRead = true;
+                }
+            }
+
+            if (controlScheme != 1 && Input.GetKeyDown(KeyCode.Mouse0))
+            {
+                Vector3 mousePos = Input.mousePosition;
+
+                if (mousePos.x > 216 && mousePos.x < 625 && mousePos.y > 266 && mousePos.y < 401)
+                {
+                    PlayAgain();
+                    hasRead = true;
+                }
+
+                if (mousePos.x > 216 && mousePos.x < 625 && mousePos.y > 80 && mousePos.y < 215)
+                {
+                    ToTitleScreen();
+                    hasRead = true;
+                }
+            }
+
+            if (hasRead)
+            {
+                hasRead = false;
+                waitingForInitialsInput = false;
+            }
+        }
     }
 
     public void SetWaitingForEndTurnAnim1(bool waitIn)
@@ -534,9 +797,13 @@ public class GameManager : MonoBehaviour
         return (thermoLevel + numSteps) > 0 && (thermoLevel + numSteps) < 13;
     }
     
-    public void RaiseThermobar(int numSteps, int[] indices)
+    public void RaiseThermobar(int numSteps, int[] indices, bool fromPlayerController)
     {
         endLevel = thermoLevel + numSteps;
+        if (fromPlayerController && (endLevel == 4 || endLevel == 7 || endLevel == 10))
+        {
+            playerController.NextActionIsFree();
+        }
         if (indices.Length != 0)
         {
             StartCoroutine(LoseResourceDisplay(indices));
@@ -550,6 +817,14 @@ public class GameManager : MonoBehaviour
         Vector3 sVel = new Vector3(0, (thermoS[endLevel] - thermoS[thermoLevel]) / 30, 0);
         thermobar.transform.localPosition += yVel;
         thermobar.transform.localScale += sVel;
+        if (endLevel == 0)
+        {
+            coldVignette.color = new Color(1, 1, 1, count / 60f);
+        }
+        else if (endLevel == 12)
+        {
+            heatVignette.color = new Color(1, 1, 1, count / 60f);
+        }
         count++;
         if (count == 30)
         {
@@ -562,7 +837,38 @@ public class GameManager : MonoBehaviour
                                                          thermobar.transform.localScale.z);
             thermoLevel = endLevel;
             CancelInvoke();
-            if (!waitingForEndTurnAnim2)
+            if (endLevel == 0)
+            {
+                coldVignette.color = new Color(1, 1, 1, .5f);
+                deathType = 1;
+                waitingForEndTurnAnim1 = true;
+                waitingForEndTurnAnim2 = true;
+                playerController.SetWaitingForAnim(true);
+                InvokeRepeating("FinishDeathAnim", 0, 1 / 60f);
+            }
+            else if (endLevel == 12)
+            {
+                heatVignette.color = new Color(1, 1, 1, .5f);
+                deathType = 2;
+                waitingForEndTurnAnim1 = true;
+                waitingForEndTurnAnim2 = true;
+                playerController.SetWaitingForAnim(true);
+                InvokeRepeating("FinishDeathAnim", 0, 1 / 60f);
+            }
+            else if (cantSpendToLower > 0)
+            {
+                cantSpendToLower--;
+                if (cantSpendToLower == 0)
+                {
+                    CancelInvoke();
+                    InvokeRepeating("FadeInEvent", 0, 1 / 60f);
+                }
+                else
+                {
+                    RaiseThermobar(-1, new int[] { }, false);
+                }
+            }
+            else if (!waitingForEndTurnAnim2)
             {
                 playerController.SetWaitingForAnim(false);
             }
@@ -571,11 +877,11 @@ public class GameManager : MonoBehaviour
                 numLowered++;
                 if (event8Mod && numLowered < endTurnToLower)
                 {
-                    RaiseThermobar(1, new int[] { });
+                    RaiseThermobar(1, new int[] { }, false);
                 }
                 else if (numLowered < endTurnToLower)
                 {
-                    RaiseThermobar(-1, new int[] { });
+                    RaiseThermobar(-1, new int[] { }, false);
                 }
                 else
                 {
@@ -701,6 +1007,18 @@ public class GameManager : MonoBehaviour
     {
         infoButtonsDeselected[index].SetActive(true);
         infoButtonsSelected[index].SetActive(false);
+    }
+
+    public void SelectToTitle()
+    {
+        toTitleS.SetActive(true);
+        toTitleD.SetActive(false);
+    }
+
+    public void DeselectToTitle()
+    {
+        toTitleD.SetActive(true);
+        toTitleS.SetActive(false);
     }
 
     public void ShowInfoScreen()
@@ -943,16 +1261,28 @@ public class GameManager : MonoBehaviour
             UpdateHandDisplay();
             StartCoroutine(LoseResourceDisplay(new int[] { 0, 1 }));
         }
+        else if (thermoLevel > 6 && ResourceManager.HasGlucose(1))
+        {
+            ResourceManager.RemoveGlucose();
+            UpdateHandDisplay();
+            StartCoroutine(LoseResourceDisplay(new int[] { 0 }));
+            cantSpendToLower = 2;
+        }
+        else if (thermoLevel > 6)
+        {
+            cantSpendToLower = 4;
+            waitingForEndTurnAnim1 = false;
+        }
         else if (thermoLevel > 3 && ResourceManager.HasGlucose(1))
         {
             ResourceManager.RemoveGlucose();
             UpdateHandDisplay();
             StartCoroutine(LoseResourceDisplay(new int[] { 0 }));
         }
-        else if ((thermoLevel > 3 && !ResourceManager.HasGlucose(1)) ||
-                 (thermoLevel > 6 && !ResourceManager.HasGlucose(2)))
+        else if (thermoLevel > 3)
         {
-            //Game Over
+            cantSpendToLower = 2;
+            waitingForEndTurnAnim1 = false;
         }
 
         InvokeRepeating("WaitForEndTurnInit", 0, 1 / 60f);
@@ -960,10 +1290,15 @@ public class GameManager : MonoBehaviour
 
     private void WaitForEndTurnInit()
     {
-        if (!waitingForEndTurnAnim1)
+        if (!waitingForEndTurnAnim1 && cantSpendToLower == 0)
         {
             CancelInvoke();
             InvokeRepeating("FadeInEvent", 0, 1 / 60f);
+        }
+        else if (!waitingForEndTurnAnim1)
+        {
+            CancelInvoke();
+            RaiseThermobar(-1, new int[] { }, false);
         }
     }
 
@@ -1103,12 +1438,12 @@ public class GameManager : MonoBehaviour
         {
             waitingForEndTurnAnim2 = true;
             endTurnToLower *= -1;
-            RaiseThermobar(1, new int[] { });
+            RaiseThermobar(1, new int[] { }, false);
         }
         else if (numLowered < endTurnToLower)
         {
             waitingForEndTurnAnim2 = true;
-            RaiseThermobar(-1, new int[] { });
+            RaiseThermobar(-1, new int[] { }, false);
         }
         else if (endTurnToLower == 0)
         {
@@ -1169,9 +1504,12 @@ public class GameManager : MonoBehaviour
 
     public void EndTurnFinal()
     {
-        if (turnNumber < 7)
+        turnNumber++;
+        if (turnNumber == 8)
         {
-            turnNumber++;
+            deathType = 4;
+            InvokeRepeating("FadeInGameOver", .3f, 1 / 60f);
+            return;
         }
         
         if (event6Mod)
@@ -1180,7 +1518,7 @@ public class GameManager : MonoBehaviour
         }
         
         waitingForEndTurnAnim2 = false;
-        
+
         if (thermoLevel < 4)
         {
             playerController.SetActionNum(4);
@@ -1189,7 +1527,7 @@ public class GameManager : MonoBehaviour
         {
             playerController.SetActionNum(3);
         }
-        else if (thermoLevel < 7)
+        else if (thermoLevel < 10)
         {
             playerController.SetActionNum(2);
         }
@@ -1250,7 +1588,207 @@ public class GameManager : MonoBehaviour
             count = 0;
             gameOverBackground.color = new Color(0, 0, 0, 1);
             CancelInvoke();
-            
+            StartCoroutine(LoadGameOverText());
         }
+    }
+
+    IEnumerator LoadGameOverText()
+    {
+        if (deathType == 4)
+        {
+            gameOver.text = "You win!";
+        }
+        gameOver.color = new Color(1, 1, 1, 1);
+
+        yield return new WaitForSeconds(1);
+
+        deathReason.text = deathText[deathType];
+        deathReason.color = new Color(1, 1, 1, 1);
+
+        yield return new WaitForSeconds(1);
+
+        scoreManager.GameEndScore(deathType == 4, thermoLevel, radiLevel,
+                                  ResourceManager.GetPlayerHand().Count, turnNumber - 1);
+        scoreText.text = "Score: " + scoreManager.GetScore();
+        scoreText.color = new Color(1, 1, 1, 1);
+
+        yield return new WaitForSeconds(1);
+
+        for (int i = 0; i < 10; i++)
+        {
+            if (scoreManager.GetScore() > int.Parse(PlayerPrefs.GetString("High Score " + i).Substring(6)))
+            {
+                scoreIndex = i;
+                break;
+            }
+        }
+
+        if (scoreIndex != -1)
+        {
+            isNewHighScore = true;
+            gameOverFrame.color = new Color(1, 1, 1, 1);
+            gameOverWindow.color = new Color(0, 0, 0, 1);
+            newHighScore.color = new Color(1, 1, 1, 1);
+            enterInitials.color = new Color(1, 1, 1, 1);
+            for (int i = 0; i < 3; i++)
+            {
+                initialsText[i].color = new Color(1, 1, 1, 1);
+                initialWindows[i].color = new Color(0, 0, 0, 1);
+                initialFrames[i].color = new Color(1, 1, 1, 1);
+                initialTris[2 * i].color = new Color(1, 1, 1, 1);
+                initialTris[2 * i + 1].color = new Color(1, 1, 1, 1);
+            }
+            if (controlScheme != 0)
+            {
+                initialFrames[0].color = new Color(57f / 255, 209f / 255, 1f / 255, 1);
+            }
+            initialWindows[3].color = new Color(0, 0, 0, 1);
+            initialFrames[3].color = new Color(1, 1, 1, 1);
+            initialTris[6].color = new Color(1, 1, 1, 1);
+            waitingForInitialsInput = true;
+        }
+
+        InvokeRepeating("WaitForInitialsInput", 0, 1/60f);
+    }
+
+    private void WaitForInitialsInput()
+    {
+        if (!waitingForInitialsInput)
+        {
+            CancelInvoke();
+            if (isNewHighScore)
+            {
+                gameOverFrame.color = new Color(1, 1, 1, 0);
+                gameOverWindow.color = new Color(0, 0, 0, 0);
+                newHighScore.color = new Color(1, 1, 1, 0);
+                enterInitials.color = new Color(1, 1, 1, 0);
+                for (int i = 0; i < 3; i++)
+                {
+                    initialsText[i].color = new Color(1, 1, 1, 0);
+                    initialWindows[i].color = new Color(0, 0, 0, 0);
+                    initialFrames[i].color = new Color(1, 1, 1, 0);
+                    initialTris[2 * i].color = new Color(1, 1, 1, 0);
+                    initialTris[2 * i + 1].color = new Color(1, 1, 1, 0);
+                }
+                initialWindows[3].color = new Color(0, 0, 0, 0);
+                initialFrames[3].color = new Color(1, 1, 1, 0);
+                initialTris[6].color = new Color(1, 1, 1, 0);
+
+                string tempScore1 = "", tempScore2;
+                for (int i = 0; i < initials.Length; i++)
+                {
+                    tempScore1 += initials[i] + "";
+                }
+                tempScore1 += " - " + scoreManager.GetScore();
+
+                for (int i = 0; i < 10; i++)
+                {
+                    if (i >= scoreIndex)
+                    {
+                        tempScore2 = PlayerPrefs.GetString("High Score " + i);
+                        PlayerPrefs.SetString("High Score " + i, tempScore1);
+                        PlayerPrefs.Save();
+                        tempScore1 = tempScore2;
+                    }
+                }
+
+                StartCoroutine(NewHighScoreAnim());
+            }
+            else
+            {
+                FinishLoadingGameOver();
+            }
+        }
+    }
+
+    IEnumerator NewHighScoreAnim()
+    {
+        highScoresHeader.color = new Color(1, 1, 1, 1);
+        for (int i = 0; i < highScores.Length; i++)
+        {
+            yield return new WaitForSeconds(.5f);
+            if (!PlayerPrefs.GetString("High Score " + i).Equals("--- - 0"))
+            {
+                highScores[i].text = PlayerPrefs.GetString("High Score " + i);
+            }
+            else
+            {
+                highScores[i].text = "";
+            }
+            
+            if (i == scoreIndex)
+            {
+                InvokeRepeating("PlayerScoreAnim", 0, .5f);
+            }
+            else
+            {
+                highScores[i].color = new Color(1, 1, 1, 1);
+            }
+        }
+    }
+
+    private void PlayerScoreAnim()
+    {
+        if (count % 2 == 0)
+        {
+            highScores[scoreIndex].color = new Color(57f / 255, 209f / 255, 1f / 255, 1);
+        }
+        else
+        {
+            highScores[scoreIndex].color = new Color(1, 1, 1, 1);
+        }
+        count++;
+        if (count == 10)
+        {
+            CancelInvoke();
+            playAgainSelect.SetActive(true);
+            if (controlScheme == 0)
+            {
+                playAgainSelect.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 1);
+            }
+            titleScreenSelect.SetActive(true);
+            playAgain.color = new Color(1, 1, 1, 1);
+            titleScreen.color = new Color(1, 1, 1, 1);
+
+            waitingForGameEndInput = true;
+        }
+    }
+
+    private void  FinishLoadingGameOver()
+    {
+        highScoresHeader.color = new Color(1, 1, 1, 1);
+        for (int i = 0; i < 10; i++)
+        {
+            if (PlayerPrefs.GetString("High Score " + i).Equals("--- - 0"))
+            {
+                highScores[i].text = "";
+            }
+            else
+            {
+                highScores[i].text = PlayerPrefs.GetString("High Score " + i);
+                highScores[i].color = new Color(1, 1, 1, 1);
+            }
+        }
+
+        playAgainSelect.SetActive(true);
+        if (controlScheme == 0)
+        {
+            playAgainSelect.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 1);
+        }
+        titleScreenSelect.SetActive(true);
+        playAgain.color = new Color(1, 1, 1, 1);
+        titleScreen.color = new Color(1, 1, 1, 1);
+
+        waitingForGameEndInput = true;
+    }
+
+    public void ToTitleScreen()
+    {
+        SceneManager.LoadScene("TitleScreen", LoadSceneMode.Single);
+    }
+
+    public void PlayAgain()
+    {
+        SceneManager.LoadScene("InGame", LoadSceneMode.Single);
     }
 }
