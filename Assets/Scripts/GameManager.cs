@@ -21,7 +21,7 @@ public class GameManager : MonoBehaviour
                                        -1.475f, -1.155f, -0.835f, -0.515f, -0.195f}, //.32 diff
                              radiS = { .38f, 1.02f, 1.66f, 2.3f, 2.94f, 3.58f,
                                        4.22f, 4.86f, 5.5f, 6.14f, 6.78f}; //.64 diff
-    private int thermoLevel = 11, radiLevel = 10, endLevel = 0, count = 0;
+    private int thermoLevel = 10, radiLevel = 10, endLevel = 0, count = 0;
 
     private PlayerController playerController;
     private BoardManager boardManager;
