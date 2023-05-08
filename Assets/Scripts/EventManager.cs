@@ -2,12 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EventManager
+public class EventManager : MonoBehaviour
 {
-    private static bool[] eventsOccurred = {false, false, false, false, false, false, false, false};
-    private static GameManager gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
-    private static PlayerController playerController = GameObject.Find("Player Microbe")
-                                                                 .GetComponent<PlayerController>();
+    private bool[] eventsOccurred = {false, false, false, false, false, false, false, false};
+    private GameManager gameManager;
+    private ResourceManager resourceManager;
+    private PlayerController playerController;
     public static readonly string[] EVENT_TEXT = { "You are attacked by other microorganisms on " +
                                                      "the asteroid! Lose 3 of your resources or " +
                                                      "all of them if you have less than 3.",
@@ -46,14 +46,21 @@ public class EventManager
                                                      "compared to their original values. Don’t " +
                                                      "burn up with the asteroid!"};
 
-    public static bool HasEventOccurred(int index)
+    void Start()
+    {
+        gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
+        resourceManager = GameObject.Find("Resource Manager").GetComponent<ResourceManager>();
+        playerController = GameObject.Find("Player Microbe").GetComponent<PlayerController>();
+    }
+
+    public bool HasEventOccurred(int index)
     {
         return eventsOccurred[index];
     }
 
-    public static int PickEvent()
+    public int PickEvent()
     {
-        int initIndex = Random.Range(0, 7);
+        int initIndex = Random.Range(0, 8);
         int index = initIndex;
         bool pickedEvent = false, hitZero = false;
         while (!pickedEvent)
@@ -81,11 +88,11 @@ public class EventManager
         return index;
     }
     
-    public static void TriggerEvent(int index)
+    public void TriggerEvent(int index)
     {
         if (index == 0)
         {
-            ResourceManager.Event0();
+            resourceManager.Event0();
         }
         else if (index == 1)
         {
@@ -101,7 +108,7 @@ public class EventManager
         }
         else if (index == 2)
         {
-            ResourceManager.Event2();
+            resourceManager.Event2();
         }
         else if (index == 3)
         {

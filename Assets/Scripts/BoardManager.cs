@@ -16,7 +16,7 @@ public class BoardManager : MonoBehaviour
                        new BoardSpace(3, new int[] {1, 2, 4, 5}, new int[] {3, 5, 1, 7}, 0, 0, -2, -1),
                        new BoardSpace(4, new int[] {3, 6}, new int[] {5, 7}, DIAG_DIST, DIAG_DIST, -2, -2),
                        new BoardSpace(5, new int[] {3, 6}, new int[] {3, 1}, DIAG_DIST, -DIAG_DIST, -2, -2),
-                       new BoardSpace(6, new int[] {4, 5}, new int[] {3, 5}, 2 * DIAG_DIST, 0, -1, 3) },
+                       new BoardSpace(6, new int[] {4, 5}, new int[] {3, 5}, 2 * DIAG_DIST, 0, -1, -3) },
                      { new BoardSpace(0, new int[] {1, 2}, new int[] {2, 0}, -ORTH_DIST, -ORTH_DIST, -4, -1),
                        new BoardSpace(1, new int[] {0, 3}, new int[] {6, 0}, -ORTH_DIST, 0, -4, -1),
                        new BoardSpace(2, new int[] {0, 3}, new int[] {4, 2}, 0, -ORTH_DIST, -3, -2),
@@ -84,6 +84,13 @@ public class BoardManager : MonoBehaviour
         playerController = player.GetComponent<PlayerController>();
         gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
         nextState = Random.Range(0, 7);
+        for (int i = 0; i < BOARDS.GetLength(0); i++)
+        {
+            for (int j = 0; j < BOARDS.GetLength(1); j++)
+            {
+                BOARDS[i, j].ResetScavAmt();
+            }
+        }
     }
 
     // Update is called once per frame

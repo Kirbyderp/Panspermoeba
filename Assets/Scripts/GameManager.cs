@@ -5,6 +5,8 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
+    private bool onArcade = true;
+    
     private TMPro.TextMeshProUGUI gText, pText, bText;
     private GameObject[] rLossIndicators = new GameObject[9];
     private GameObject[,] rGainIndicators = new GameObject[2,12];
@@ -24,6 +26,8 @@ public class GameManager : MonoBehaviour
     private PlayerController playerController;
     private BoardManager boardManager;
     private ScoreManager scoreManager;
+    private ResourceManager resourceManager;
+    private EventManager eventManager;
 
     private SpriteRenderer playerMicrobe;
     private GameObject scavAmtIndicatorToggle;
@@ -76,7 +80,9 @@ public class GameManager : MonoBehaviour
                              initialTris = new SpriteRenderer[7];
     private bool waitingForInitialsInput = false, isNewHighScore = false;
     int selectedInitial = 0, scoreIndex = -1;
-    private bool waitingForGameEndInput = false, selectedPlayAgain = false;
+    private bool waitingForGameEndInput = false, selectedPlayAgain = true;
+
+    private GameObject stuffHider;
 
     private int turnNumber = 1;
     private int controlScheme = 2; //0 == mouse only, 1 == keyboard only, 2 == both
@@ -89,10 +95,12 @@ public class GameManager : MonoBehaviour
         thermobar = GameObject.Find("Thermobar");
         radibar = GameObject.Find("Radibar");
 
+        eventManager = GameObject.Find("Event Manager").GetComponent<EventManager>();
+        resourceManager = GameObject.Find("Resource Manager").GetComponent<ResourceManager>();
         gText = GameObject.Find("Glucose Text").GetComponent<TMPro.TextMeshProUGUI>();
         pText = GameObject.Find("Phosphate Text").GetComponent<TMPro.TextMeshProUGUI>();
         bText = GameObject.Find("Base Pair Text").GetComponent<TMPro.TextMeshProUGUI>();
-        ResourceManager.SetUpDeck();
+        resourceManager.SetUpDeck();
 
         for (int i = 0; i < rLossIndicators.Length; i++)
         {
@@ -274,6 +282,8 @@ public class GameManager : MonoBehaviour
         gameOverWindow = GameObject.Find("Game Over Window").GetComponent<SpriteRenderer>();
         gameOverWindow.color = new Color(0, 0, 0, 0);
 
+        stuffHider = GameObject.Find("Stuff Hider");
+
         StartCoroutine(HideStuff());
     }
 
@@ -314,11 +324,18 @@ public class GameManager : MonoBehaviour
 
         playAgainSelect.SetActive(false);
         titleScreenSelect.SetActive(false);
+
+        stuffHider.SetActive(false);
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (onArcade && Input.GetKeyUp(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
+
         if (waitingForHavingRead)
         {
             bool hasRead = false;
@@ -494,12 +511,12 @@ public class GameManager : MonoBehaviour
                 {
                     for (int j = 0; j < rToDiscard[i]; j++)
                     {
-                        ResourceManager.RemoveResource(i);
+                        resourceManager.RemoveResource(i);
                         count++;
                     }
                 }
 
-                ResourceManager.Draw(count);
+                resourceManager.Draw(count);
 
                 if (controlScheme != 0)
                 {
@@ -769,7 +786,7 @@ public class GameManager : MonoBehaviour
 
     public void UpdateHandDisplay()
     {
-        List<Resource> playerHand = ResourceManager.GetPlayerHand();
+        List<Resource> playerHand = resourceManager.GetPlayerHand();
         int gCount = 0, pCount = 0, bCount = 0;
         for (int i = 0; i < playerHand.Count; i++)
         {
@@ -1028,7 +1045,7 @@ public class GameManager : MonoBehaviour
         {
             for (int i = 0; i < eventXs.Length; i++)
             {
-                if (EventManager.HasEventOccurred(i))
+                if (eventManager.HasEventOccurred(i))
                 {
                     eventXs[i].SetActive(true);
                 }
@@ -1064,6 +1081,13 @@ public class GameManager : MonoBehaviour
             activePage = 2;
             infoPage1.SetActive(false);
             infoPage2.SetActive(true);
+            for (int i = 0; i < eventXs.Length; i++)
+            {
+                if (eventManager.HasEventOccurred(i))
+                {
+                    eventXs[i].SetActive(true);
+                }
+            }
             turnTracker.transform.position = new Vector3(turnTracker.transform.position.x,
                                                          trackerYPos[turnNumber - 1],
                                                          turnTracker.transform.position.z);
@@ -1203,7 +1227,7 @@ public class GameManager : MonoBehaviour
         continueSelect.SetActive(true);
         continueSelect.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 1);
         eventContinue.color = new Color(1, 1, 1, 1);
-        rInHand = ResourceManager.CountRInHand();
+        rInHand = resourceManager.CountRInHand();
         rToDiscard = new int[] { rInHand[0], 0, 0, 0 };
         event7EditTexts[0].text = "0";
         event7EditTexts[0].color = new Color(1, 1, 1, 1);
@@ -1254,16 +1278,16 @@ public class GameManager : MonoBehaviour
         {
             waitingForEndTurnAnim1 = false;
         }
-        else if (thermoLevel > 6 && ResourceManager.HasGlucose(2))
+        else if (thermoLevel > 6 && resourceManager.HasGlucose(2))
         {
-            ResourceManager.RemoveGlucose();
-            ResourceManager.RemoveGlucose();
+            resourceManager.RemoveGlucose();
+            resourceManager.RemoveGlucose();
             UpdateHandDisplay();
             StartCoroutine(LoseResourceDisplay(new int[] { 0, 1 }));
         }
-        else if (thermoLevel > 6 && ResourceManager.HasGlucose(1))
+        else if (thermoLevel > 6 && resourceManager.HasGlucose(1))
         {
-            ResourceManager.RemoveGlucose();
+            resourceManager.RemoveGlucose();
             UpdateHandDisplay();
             StartCoroutine(LoseResourceDisplay(new int[] { 0 }));
             cantSpendToLower = 2;
@@ -1273,9 +1297,9 @@ public class GameManager : MonoBehaviour
             cantSpendToLower = 4;
             waitingForEndTurnAnim1 = false;
         }
-        else if (thermoLevel > 3 && ResourceManager.HasGlucose(1))
+        else if (thermoLevel > 3 && resourceManager.HasGlucose(1))
         {
-            ResourceManager.RemoveGlucose();
+            resourceManager.RemoveGlucose();
             UpdateHandDisplay();
             StartCoroutine(LoseResourceDisplay(new int[] { 0 }));
         }
@@ -1327,7 +1351,7 @@ public class GameManager : MonoBehaviour
     {
         if (turnNumber != 7)
         {
-            eventID = EventManager.PickEvent();
+            eventID = eventManager.PickEvent();
         }
         else
         {
@@ -1389,7 +1413,7 @@ public class GameManager : MonoBehaviour
         waitingForEndTurnAnim1 = true;
         if (eventID != 8)
         {
-            EventManager.TriggerEvent(eventID);
+            eventManager.TriggerEvent(eventID);
         }
         else
         {
@@ -1433,7 +1457,7 @@ public class GameManager : MonoBehaviour
         {
             endTurnToLower = thermoLevel;
         }
-
+        
         if (endTurnToLower < 0)
         {
             waitingForEndTurnAnim2 = true;
@@ -1489,7 +1513,7 @@ public class GameManager : MonoBehaviour
                 endTurnToLower = radiLevel;
             } 
         }
-
+        
         if (numLowered < endTurnToLower)
         {
             waitingForEndTurnAnim2 = true;
@@ -1608,7 +1632,7 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(1);
 
         scoreManager.GameEndScore(deathType == 4, thermoLevel, radiLevel,
-                                  ResourceManager.GetPlayerHand().Count, turnNumber - 1);
+                                  resourceManager.GetPlayerHand().Count, turnNumber - 1);
         scoreText.text = "Score: " + scoreManager.GetScore();
         scoreText.color = new Color(1, 1, 1, 1);
 

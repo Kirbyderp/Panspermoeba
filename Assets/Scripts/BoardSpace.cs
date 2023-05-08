@@ -68,6 +68,11 @@ public class BoardSpace
         return scavAmt;
     }
 
+    public void ResetScavAmt()
+    {
+        scavAmt = 4;
+    }
+
     public void DecrementScavAmt()
     {
         scavAmt--;

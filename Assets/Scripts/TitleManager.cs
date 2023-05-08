@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class TitleManager : MonoBehaviour
 {
-    private GameObject selectFrame, rulePage, controlPage;
+    private GameObject selectFrame, rulePage, controlPage, stuffHider;
     private float[] selectFrameYPos = { .55f, -.85f, -2.25f, -3.65f };
     private int selectedAction = 0, activePage = 0, curRulePage = 0;
     private GameObject[] rulePages = new GameObject[7];
@@ -14,12 +14,15 @@ public class TitleManager : MonoBehaviour
     private string[] controlSchemeTexts = {"Mouse Only",
                                            "Keyboard Only",
                                            "Mouse & Keyboard"};
-    private TMPro.TextMeshProUGUI controlSchemeText;
+    private TMPro.TextMeshProUGUI controlSchemeText, controlsHeader;
     private SpriteRenderer applyFrame;
+    private bool onArcade = true;
+    private GameObject arcadeControls, nonArcadeControls,
+                       nonArcadeControlObject, nonArcadeControlTris;
     private int controlScheme; //0 == mouse only, 1 == keyboard only, 2 == both
 
     //Controls
-    KeyCode back = KeyCode.Escape;
+    KeyCode back = KeyCode.Z;//From Escape
 
     KeyCode lClick = KeyCode.Mouse0;
 
@@ -28,14 +31,21 @@ public class TitleManager : MonoBehaviour
     KeyCode moveD = KeyCode.S;
     KeyCode moveR = KeyCode.D;
 
-    KeyCode selectL = KeyCode.J;
-    KeyCode selectR = KeyCode.K;
-    KeyCode useSelect = KeyCode.Return;
+    KeyCode selectL = KeyCode.Space;//From J
+    KeyCode selectR = KeyCode.V;//From K
+    KeyCode useSelect = KeyCode.B;//From Return
 
     // Start is called before the first frame update
     void Start()
     {
-        if (PlayerPrefs.HasKey("Control Scheme"))
+        if (onArcade)
+        {
+            Cursor.visible = false;
+            controlScheme = 1;
+            controlSchemeTemp = 1;
+            PlayerPrefs.SetInt("Control Scheme", 1);
+        }
+        else if (PlayerPrefs.HasKey("Control Scheme"))
         {
             controlScheme = PlayerPrefs.GetInt("Control Scheme");
             controlSchemeTemp = PlayerPrefs.GetInt("Control Scheme");
@@ -59,6 +69,11 @@ public class TitleManager : MonoBehaviour
 
         rulePage = GameObject.Find("Rule Page");
         controlPage = GameObject.Find("Control Screen");
+        controlsHeader = GameObject.Find("Controls Header").GetComponent<TMPro.TextMeshProUGUI>();
+        arcadeControls = GameObject.Find("Arcade Controls");
+        nonArcadeControls = GameObject.Find("NonArcade Controls");
+        nonArcadeControlObject = GameObject.Find("NonArcade Control Screen Objects");
+        nonArcadeControlTris = GameObject.Find("NonArcade Control Screen Tris");
         controlSchemeText = GameObject.Find("Control Scheme").GetComponent<TMPro.TextMeshProUGUI>();
         applyFrame = GameObject.Find("Apply Frame").GetComponent<SpriteRenderer>();
 
@@ -66,6 +81,8 @@ public class TitleManager : MonoBehaviour
         {
             rulePages[i] = GameObject.Find("Page " + i);
         }
+
+        stuffHider = GameObject.Find("Stuff Hider");
 
         StartCoroutine(HideStuff());
     }
@@ -75,17 +92,36 @@ public class TitleManager : MonoBehaviour
         yield return new WaitForSeconds(.02f);
 
         rulePage.SetActive(false);
+
+        if (onArcade)
+        {
+            nonArcadeControls.SetActive(false);
+            nonArcadeControlObject.SetActive(false);
+            nonArcadeControlTris.SetActive(false);
+            controlsHeader.text = "Controls";
+        }
+        else
+        {
+            arcadeControls.SetActive(false);
+        }
         controlPage.SetActive(false);
 
         if (controlScheme == 0)
         {
             selectFrame.SetActive(false);
         }
+
+        stuffHider.SetActive(false);
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (onArcade && Input.GetKeyUp(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
+        
         if (activePage == 0)
         {
             if (controlScheme != 1)
@@ -292,7 +328,7 @@ public class TitleManager : MonoBehaviour
         {
             if (controlScheme != 0)
             {
-                if (Input.GetKeyDown(selectL))
+                if (Input.GetKeyDown(selectL) && !onArcade)
                 {
                     controlSchemeTemp--;
                     if (controlSchemeTemp < 0)
@@ -302,7 +338,7 @@ public class TitleManager : MonoBehaviour
                     controlSchemeText.text = controlSchemeTexts[controlSchemeTemp];
                 }
 
-                if (Input.GetKeyDown(selectR))
+                if (Input.GetKeyDown(selectR) && !onArcade)
                 {
                     controlSchemeTemp++;
                     if (controlSchemeTemp > 2)
@@ -312,7 +348,7 @@ public class TitleManager : MonoBehaviour
                     controlSchemeText.text = controlSchemeTexts[controlSchemeTemp];
                 }
 
-                if (Input.GetKeyDown(useSelect))
+                if (Input.GetKeyDown(useSelect) && !onArcade)
                 {
                     controlScheme = controlSchemeTemp;
                     PlayerPrefs.SetInt("Control Scheme", controlScheme);

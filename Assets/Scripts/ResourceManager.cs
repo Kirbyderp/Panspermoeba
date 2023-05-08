@@ -2,22 +2,29 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ResourceManager
+public class ResourceManager : MonoBehaviour
 {
-    private static List<Resource> resourceDeck;
-    private static List<Resource> playerHand;
-    private static List<Resource> discardPile;
-    private static GameManager gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
-    private static PlayerController playerController = GameObject.Find("Player Microbe")
-                                                                 .GetComponent<PlayerController>();
+    private List<Resource> resourceDeck;
+    private List<Resource> playerHand;
+    private List<Resource> discardPile;
+    private GameManager gameManager;
+    private PlayerController playerController;
 
+    void Start()
+    {
+        resourceDeck = new List<Resource>();
+        playerHand = new List<Resource>();
+        discardPile = new List<Resource>();
+        gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
+        playerController = GameObject.Find("Player Microbe").GetComponent<PlayerController>();
+    }
 
-    public static List<Resource> GetPlayerHand()
+    public List<Resource> GetPlayerHand()
     {
         return playerHand;
     }
 
-    public static int[] CountRInHand()
+    public int[] CountRInHand()
     {
         int[] rInHand = { 0, 0, 0, 0 };
         foreach (Resource r in playerHand)
@@ -42,7 +49,7 @@ public class ResourceManager
         return rInHand;
     }
 
-    public static void SetUpDeck()
+    public void SetUpDeck()
     {
         resourceDeck = new List<Resource>();
         playerHand = new List<Resource>();
@@ -65,7 +72,7 @@ public class ResourceManager
         }
     }
 
-    public static void ShuffleDeck()
+    public void ShuffleDeck()
     {
         while (discardPile.Count != 0)
         {
@@ -74,7 +81,7 @@ public class ResourceManager
         }
     }
 
-    public static void Draw(int cardNum)
+    public void Draw(int cardNum)
     {
         for (int i = 0; i < cardNum; i++)
         {
@@ -99,7 +106,7 @@ public class ResourceManager
         }
     }
 
-    public static int[] Scavenge(int cardNum, int curSpace)
+    public int[] Scavenge(int cardNum, int curSpace)
     {
         int gCount = 0, pCount = 0, bCount = 0;
         for (int i = 0; i < cardNum; i++)
@@ -225,7 +232,7 @@ public class ResourceManager
         return indices;
     }
 
-    public static bool CanRaiseTemp(int extraS)
+    public bool CanRaiseTemp(int extraS)
     {
         int count = 0;
         foreach(Resource r in playerHand)
@@ -242,7 +249,7 @@ public class ResourceManager
         return false;
     }
 
-    public static void RaiseTemp()
+    public void RaiseTemp()
     {
         foreach (Resource r in playerHand)
         {
@@ -255,7 +262,7 @@ public class ResourceManager
         }
     }
 
-    public static bool CanRaiseGene(int extraS)
+    public bool CanRaiseGene(int extraS)
     {
         bool hasS = false, hasP = false, hasB = false;
         int count = 0;
@@ -285,7 +292,7 @@ public class ResourceManager
         return false;
     }
 
-    public static void RaiseGene()
+    public void RaiseGene()
     {
         foreach (Resource r in playerHand)
         {
@@ -318,7 +325,7 @@ public class ResourceManager
         }
     }
 
-    public static bool HasGlucose(int num)
+    public bool HasGlucose(int num)
     {
         int count = 0;
         foreach (Resource r in playerHand)
@@ -335,7 +342,7 @@ public class ResourceManager
         return false;
     }
 
-    public static void RemoveGlucose()
+    public void RemoveGlucose()
     {
         foreach (Resource r in playerHand)
         {
@@ -348,7 +355,7 @@ public class ResourceManager
         }
     }
 
-    public static void RemoveResource(int rType)
+    public void RemoveResource(int rType)
     {
         foreach (Resource r in playerHand)
         {
@@ -361,7 +368,7 @@ public class ResourceManager
         }
     }
 
-    public static void Event0()
+    public void Event0()
     {
         gameManager.SetWaitingForEndTurnAnim1(true);
         int gCount = 0, pCount = 0, bCount = 0;
@@ -467,7 +474,7 @@ public class ResourceManager
         }
     }
 
-    public static void Event2()
+    public void Event2()
     {
         gameManager.SetWaitingForEndTurnAnim1(true);
         int gCount = 0, pCount = 0, bCount = 0;
