@@ -537,7 +537,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Quit Game - ESC (on title screen)
+  m_text: Quit Game - BACKSPACE (on title screen)
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f8ba5712045eed440ba3dd328ac42267, type: 2}
   m_sharedMaterial: {fileID: 8086255604090899978, guid: f8ba5712045eed440ba3dd328ac42267, type: 2}
@@ -684,10 +684,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 2.16
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 872.7273, y: 490.9091}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
@@ -2662,7 +2662,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Previous Page - ESC
+  m_text: Previous Page - BACKSPACE
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f8ba5712045eed440ba3dd328ac42267, type: 2}
   m_sharedMaterial: {fileID: 8086255604090899978, guid: f8ba5712045eed440ba3dd328ac42267, type: 2}
@@ -3461,10 +3461,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 2.16
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 872.7273, y: 490.9091}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3

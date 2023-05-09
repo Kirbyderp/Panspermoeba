@@ -31,7 +31,7 @@ public class PlayerController : MonoBehaviour
                                              new Vector3(7.06f, -3.786f, -4.5f) };
 
     //Controls
-    KeyCode back = KeyCode.Z;//From Escape
+    KeyCode back = KeyCode.Backspace;//Arcade is Z
 
     KeyCode lClick = KeyCode.Mouse0;
 
@@ -40,9 +40,9 @@ public class PlayerController : MonoBehaviour
     KeyCode moveD = KeyCode.S;
     KeyCode moveR = KeyCode.D;
 
-    KeyCode selectL = KeyCode.Space;//From J
-    KeyCode selectR = KeyCode.V;//From K
-    KeyCode useSelect = KeyCode.B;//From Return
+    KeyCode selectL = KeyCode.J;//Arcade is Space
+    KeyCode selectR = KeyCode.K;//Arcade is V
+    KeyCode useSelect = KeyCode.Return;//Arcade is B
 
     // Start is called before the first frame update
     void Start()

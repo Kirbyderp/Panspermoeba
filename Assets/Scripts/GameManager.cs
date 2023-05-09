@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    private bool onArcade = true;
+    private bool onArcade = false;
     
     private TMPro.TextMeshProUGUI gText, pText, bText;
     private GameObject[] rLossIndicators = new GameObject[9];

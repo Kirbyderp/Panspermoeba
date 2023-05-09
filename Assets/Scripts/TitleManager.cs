@@ -16,13 +16,13 @@ public class TitleManager : MonoBehaviour
                                            "Mouse & Keyboard"};
     private TMPro.TextMeshProUGUI controlSchemeText, controlsHeader;
     private SpriteRenderer applyFrame;
-    private bool onArcade = true;
+    private bool onArcade = false;
     private GameObject arcadeControls, nonArcadeControls,
                        nonArcadeControlObject, nonArcadeControlTris;
     private int controlScheme; //0 == mouse only, 1 == keyboard only, 2 == both
 
     //Controls
-    KeyCode back = KeyCode.Z;//From Escape
+    KeyCode back = KeyCode.Backspace;//Arcade is Z
 
     KeyCode lClick = KeyCode.Mouse0;
 
@@ -31,9 +31,9 @@ public class TitleManager : MonoBehaviour
     KeyCode moveD = KeyCode.S;
     KeyCode moveR = KeyCode.D;
 
-    KeyCode selectL = KeyCode.Space;//From J
-    KeyCode selectR = KeyCode.V;//From K
-    KeyCode useSelect = KeyCode.B;//From Return
+    KeyCode selectL = KeyCode.J;//Arcade is Space
+    KeyCode selectR = KeyCode.K;//Arcade is V
+    KeyCode useSelect = KeyCode.Return;//Arcade is B
 
     // Start is called before the first frame update
     void Start()
@@ -54,6 +54,7 @@ public class TitleManager : MonoBehaviour
         {
             controlScheme = 2;
             controlSchemeTemp = 2;
+            PlayerPrefs.SetInt("Control Scheme", 2);
         }
 
         for (int i = 0; i < 10; i++)
@@ -146,6 +147,7 @@ public class TitleManager : MonoBehaviour
                         activePage = 2;
                         controlPage.SetActive(true);
                         controlSchemeText.text = controlSchemeTexts[controlScheme];
+                        controlSchemeTemp = controlScheme;
                         if (controlScheme == 0)
                         {
                             applyFrame.color = new Color(1, 1, 1, 1);
@@ -207,6 +209,7 @@ public class TitleManager : MonoBehaviour
                             activePage = 2;
                             controlPage.SetActive(true);
                             controlSchemeText.text = controlSchemeTexts[controlScheme];
+                            controlSchemeTemp = controlScheme;
                             if (controlScheme == 0)
                             {
                                 applyFrame.color = new Color(1, 1, 1, 1);

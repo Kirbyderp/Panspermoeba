@@ -60,7 +60,6 @@ public class EventManager : MonoBehaviour
 
     public int PickEvent()
     {
-        return 7;
         int initIndex = Random.Range(0, 8);
         int index = initIndex;
         bool pickedEvent = false, hitZero = false;
