@@ -73,6 +73,13 @@ public class PlayerController : MonoBehaviour
             {
                 if (inInfoPage)
                 {
+                    if (kSelectedButton != 5)
+                    {
+                        kButtonSelector.transform.position = kSelectorPositions[3];
+                        gameManager.SelectButton(3);
+                        gameManager.DeselectInfoButton(kSelectedButton - 6);
+                    }
+                    kSelectedButton = 3;
                     gameManager.HideInfoScreen();
                     inInfoPage = false;
                 }
@@ -621,6 +628,7 @@ public class PlayerController : MonoBehaviour
         count++;
         if (count == 60)
         {
+            scoreManager.Move();
             transform.position = new Vector3(nextXPos, nextYPos, -1);
             curXPos = nextXPos;
             curYPos = nextYPos;

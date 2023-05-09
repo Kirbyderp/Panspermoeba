@@ -5,7 +5,7 @@ using UnityEngine;
 public class ScoreManager : MonoBehaviour
 {
     private int score = 0;
-    private int[] gameEndTurnScores = { -50, 0, 100, 300, 800, 2000, 4000, 7000};
+    private int[] gameEndTurnScores = { -100, 0, 500, 1000, 2000, 3000, 4000, 5000};
 
     public int GetScore()
     {
@@ -14,17 +14,22 @@ public class ScoreManager : MonoBehaviour
 
     public void RaiseTemp()
     {
-        score += 50;
+        score += 80;
     }
 
     public void RaiseGene()
     {
-        score += 200;
+        score += 250;
+    }
+
+    public void Move()
+    {
+        score += 30;
     }
 
     public void GameEndScore(bool hasWon, int thermoIn, int radIn, int rInHand, int turn)
     {
-        score += gameEndTurnScores[turn] + (hasWon ? 40 * thermoIn + 100 * radIn : 0) + 
-                 20 * rInHand + Random.Range(-5, 6);
+        score += gameEndTurnScores[turn] + (hasWon ? 40 * thermoIn + 300 * radIn : 0) + 
+                 40 * rInHand + Random.Range(-5, 6);
     }
 }

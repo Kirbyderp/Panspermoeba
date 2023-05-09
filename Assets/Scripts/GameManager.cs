@@ -1260,12 +1260,12 @@ public class GameManager : MonoBehaviour
         if (count == 60)
         {
             count = 0;
+            CancelInvoke();
             eventFade.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
             eventFrame.GetComponent<SpriteRenderer>().color = new Color(238f / 255, 238f / 255,
                                                                         238f / 255, 0);
             eventWindow.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
             event7Header.color = new Color(1, 1, 1, 0);
-            CancelInvoke();
             UpdateHandDisplay();
             playerController.SetWaitingForAnim(false);
         }

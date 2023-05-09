@@ -38,7 +38,7 @@ public class EventManager : MonoBehaviour
                                                    "A water pocket has been found in the center " +
                                                      "of the asteroid. Once per action, whenever " +
                                                      "you scavenge for resources in the center " +
-                                                     "tile, you can discard any number of" +
+                                                     "tile, you can discard any number of " +
                                                      "your stored resources to get that many back.",
                                                    "Your asteroid is entering the destination " +
                                                      "planet! During the upkeep phase, treat all " +
@@ -60,6 +60,7 @@ public class EventManager : MonoBehaviour
 
     public int PickEvent()
     {
+        return 7;
         int initIndex = Random.Range(0, 8);
         int index = initIndex;
         bool pickedEvent = false, hitZero = false;
